@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>好きになるクレッシェンド コール練習</title>
+<style>
+  :root{
+    --pink: #29a3e0;
+    --pink-light: #e3f4fd;
+    --blue: #4fc3f7;
+    --blue-light: #e0f7ff;
+    --bg: #f5fbff;
+    --card: #ffffff;
+    --text: #2f3a3f;
+    --text-sub: #7a8a90;
+    --success: #35c47e;
+    --success-light: #e3faef;
+    --danger: #ff5c7a;
+    --border: #ddeef8;
+  }
+  *{ box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body{
+    margin:0; padding:0;
+    background: linear-gradient(180deg, #eaf6ff 0%, #f5fbff 200px, var(--bg) 100%);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+    min-height: 100vh;
+  }
+  .wrap{
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 20px 16px 40px;
+  }
+  header{
+    text-align:center;
+    padding: 14px 0 18px;
+  }
+  header h1{
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0 0 2px;
+    background: linear-gradient(90deg, var(--pink), #8fd8ff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  header p{
+    font-size: 12px;
+    color: var(--text-sub);
+    margin: 0;
+  }
+  .tabs{
+    display:flex;
+    gap:8px;
+    background: var(--pink-light);
+    padding: 4px;
+    border-radius: 14px;
+    margin-bottom: 18px;
+  }
+  .tabs button{
+    flex:1;
+    border:none;
+    background: transparent;
+    padding: 10px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-sub);
+    border-radius: 10px;
+    cursor:pointer;
+    transition: all .2s;
+  }
+  .tabs button.active{
+    background: var(--card);
+    color: var(--pink);
+    box-shadow: 0 2px 8px rgba(79,195,247,0.25);
+  }
+  .view{ display:none; }
+  .view.active{ display:block; }
+
+  /* Learn view */
+  .flash{
+    background: var(--card);
+    border-radius: 22px;
+    padding: 40px 20px 32px;
+    text-align:center;
+    box-shadow: 0 6px 20px rgba(79,195,247,0.12);
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .flash::before{
+    content:"";
+    position:absolute;
+    top:-40px; right:-40px;
+    width:120px; height:120px;
+    background: radial-gradient(circle, var(--pink-light), transparent 70%);
+    border-radius: 50%;
+  }
+  .flash .idx{
+    font-size: 12px;
+    color: var(--text-sub);
+    margin-bottom: 12px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+  .flash .nick{
+    font-size: 34px;
+    font-weight: 800;
+    color: var(--pink);
+    margin: 0 0 8px;
+  }
+  .flash .real{
+    font-size: 15px;
+    color: var(--text-sub);
+    margin: 0;
+  }
+  .nav{
+    display:flex;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .nav button{
+    flex:1;
+    padding: 13px 0;
+    border-radius: 14px;
+    border: none;
+    background: var(--pink);
+    color: white;
+    font-size: 15px;
+    font-weight: 700;
+    cursor:pointer;
+    transition: transform .1s, opacity .2s;
+  }
+  .nav button:active{ transform: scale(0.97); }
+  .nav button:disabled{ opacity: 0.3; }
+  .dots{
+    display:flex;
+    justify-content:center;
+    gap:6px;
+    flex-wrap: wrap;
+  }
+  .dots span{
+    width:7px; height:7px; border-radius:50%;
+    background: var(--border);
+  }
+  .dots span.on{ background: var(--pink); }
+
+  /* Quiz view */
+  .quiz-hint{
+    font-size: 13px;
+    color: var(--text-sub);
+    text-align: center;
+    margin-bottom: 14px;
+  }
+  .slots{
+    display:flex;
+    gap:4px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+  .slot{
+    flex: 1 1 18%;
+    min-width: 0;
+    text-align:center;
+    padding: 8px 2px;
+    border-radius: 10px;
+    background: var(--pink-light);
+    color: var(--text-sub);
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow:hidden;
+    text-overflow: ellipsis;
+  }
+  .slot.filled{
+    background: var(--success-light);
+    color: var(--success);
+  }
+  .options{
+    display:grid;
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    gap: 10px;
+  }
+  .opt{
+    padding: 16px 8px;
+    border-radius: 14px;
+    border: 2px solid var(--border);
+    background: var(--card);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    cursor: pointer;
+    transition: transform .1s, opacity .2s, border-color .2s;
+  }
+  .opt:active{ transform: scale(0.96); }
+  .opt:disabled{ opacity: 0.25; }
+  .opt.shake{
+    animation: shake .4s;
+    border-color: var(--danger);
+  }
+  @keyframes shake{
+    0%,100%{ transform: translateX(0); }
+    20%{ transform: translateX(-6px); }
+    40%{ transform: translateX(6px); }
+    60%{ transform: translateX(-4px); }
+    80%{ transform: translateX(4px); }
+  }
+  .result{
+    text-align:center;
+    margin-top: 20px;
+    padding: 20px;
+    background: var(--card);
+    border-radius: 16px;
+    box-shadow: 0 6px 20px rgba(79,195,247,0.12);
+  }
+  .result .big{
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--pink);
+    margin: 0 0 4px;
+  }
+  .result .sub{
+    font-size: 13px;
+    color: var(--text-sub);
+    margin: 0 0 16px;
+  }
+  .retry-btn{
+    padding: 12px 28px;
+    border-radius: 14px;
+    border: none;
+    background: var(--pink);
+    color: white;
+    font-size: 15px;
+    font-weight: 700;
+    cursor:pointer;
+  }
+  .wrong-msg{
+    text-align:center;
+    color: var(--danger);
+    font-size: 14px;
+    font-weight: 700;
+    margin-top: 14px;
+    height: 20px;
+  }
+  footer{
+    text-align:center;
+    margin-top: 24px;
+    font-size: 11px;
+    color: var(--text-sub);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>好きになるクレッシェンド</h1>
+    <p>5期生コール練習アプリ</p>
+  </header>
+
+  <div class="tabs">
+    <button id="tab-learn" class="active">覚える</button>
+    <button id="tab-quiz">順番クイズ</button>
+  </div>
+
+  <div id="learn-view" class="view active"></div>
+  <div id="quiz-view" class="view"></div>
+
+  <footer>個人制作の非公式ファンアプリです</footer>
+</div>
+
+<script>
+const members = [
+  {nick:"みーちゃん", real:"大田 美月",   colors:["#ffb6c8","#ff4fa3"], names:["サクラピンク","ピンク"]},
+  {nick:"まなみん",   real:"大野 愛実",   colors:["#ff3333","#ff3333"], names:["レッド","レッド"]},
+  {nick:"さきてぃ",   real:"片山 紗希",   colors:["#a6ddff","#a6ddff"], names:["パステルブルー","パステルブルー"]},
+  {nick:"ひなのん",   real:"蔵盛 妃那乃", colors:["#ffb6c8","#ff3333"], names:["サクラピンク","レッド"]},
+  {nick:"にぃたん",   real:"坂井 新奈",   colors:["#ffffff","#ffffff"], names:["ホワイト","ホワイト"]},
+  {nick:"ゆうちゃん", real:"佐藤 優羽",   colors:["#2fe3a8","#2fe3a8"], names:["エメラルドグリーン","エメラルドグリーン"]},
+  {nick:"いずき",     real:"下田 衣珠季", colors:["#a6ddff","#2fe3a8"], names:["パステルブルー","エメラルドグリーン"]},
+  {nick:"りかたん",   real:"高井 俐香",   colors:["#b57af0","#ffe200"], names:["パープル","イエロー"]},
+  {nick:"にこちゃん", real:"鶴崎 仁香",   colors:["#ffe200","#ff9933"], names:["イエロー","オレンジ"]},
+  {nick:"さくら",     real:"松尾 桜",     colors:["#ffb6c8","#ffffff"], names:["サクラピンク","ホワイト"]}
+];
+
+function swatch(colors, size){
+  size = size || 18;
+  return `<span style="display:inline-flex;width:${size}px;height:${size}px;border-radius:50%;overflow:hidden;border:1px solid rgba(0,0,0,0.12);vertical-align:middle;">
+    <span style="flex:1;background:${colors[0]};"></span>
+    <span style="flex:1;background:${colors[1]};"></span>
+  </span>`;
+}
+
+/* ---------- Learn view ---------- */
+let learnIndex = 0;
+const learnView = document.getElementById('learn-view');
+
+function renderLearn(){
+  const m = members[learnIndex];
+  learnView.innerHTML = `
+    <div class="flash" style="border-top:8px solid transparent;border-image:linear-gradient(90deg, ${m.colors[0]} 50%, ${m.colors[1]} 50%) 1;">
+      <div class="idx">${learnIndex+1} / ${members.length} 番目</div>
+      <p class="nick">${m.nick}</p>
+      <p class="real">${m.real}</p>
+      <div style="margin-top:14px;display:flex;align-items:center;justify-content:center;gap:8px;">
+        ${swatch(m.colors, 20)}
+        <span style="font-size:12px;color:var(--text-sub);">${m.names[0]}${m.names[0]!==m.names[1] ? ' × '+m.names[1] : ''}</span>
+      </div>
+    </div>
+    <div class="nav">
+      <button id="prev-btn" ${learnIndex===0?'disabled':''}>← 前</button>
+      <button id="next-btn" ${learnIndex===members.length-1?'disabled':''}>次 →</button>
+    </div>
+    <div class="dots">
+      ${members.map((mm,i)=>`<span class="${i===learnIndex?'on':''}"></span>`).join('')}
+    </div>
+  `;
+  document.getElementById('prev-btn').onclick = ()=>{ if(learnIndex>0){ learnIndex--; renderLearn(); } };
+  document.getElementById('next-btn').onclick = ()=>{ if(learnIndex<members.length-1){ learnIndex++; renderLearn(); } };
+}
+
+/* ---------- Quiz view ---------- */
+const quizView = document.getElementById('quiz-view');
+let quizOrder = [];
+let quizPicked = [];
+let quizPool = [];
+let quizState = 'playing'; // playing | wrong | done
+let startTime = null;
+let bestTime = null;
+
+function shuffle(arr){
+  const a = [...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function startQuiz(){
+  quizOrder = members.map(m=>m.nick);
+  quizPicked = [];
+  quizPool = shuffle(quizOrder);
+  quizState = 'playing';
+  startTime = Date.now();
+  renderQuiz();
+}
+
+function renderQuiz(){
+  const slots = quizOrder.map((n,i)=>{
+    const filled = quizPicked[i];
+    const mm = filled ? members.find(mem=>mem.nick===filled) : null;
+    const underline = mm ? `border-bottom:3px solid ${mm.colors[0]};` : '';
+    return `<div class="slot ${filled?'filled':''}" style="${underline}">${filled ? filled : i+1}</div>`;
+  }).join('');
+
+  let bottom = '';
+  if(quizState==='done'){
+    const secs = ((Date.now()-startTime)/1000).toFixed(1);
+    if(bestTime===null || parseFloat(secs) < parseFloat(bestTime)) bestTime = secs;
+    bottom = `
+      <div class="result">
+        <p class="big">クリア！ ${secs}秒</p>
+        <p class="sub">ベストタイム: ${bestTime}秒</p>
+        <button class="retry-btn" id="retry-btn">もう一度</button>
+      </div>`;
+  }
+
+  quizView.innerHTML = `
+    <p class="quiz-hint">正しい順番でニックネームをタップしてね</p>
+    <div class="slots">${slots}</div>
+    <div class="options">
+      ${quizPool.map(nick=>{
+        const used = quizPicked.includes(nick);
+        const mm = members.find(mem=>mem.nick===nick);
+        return `<button class="opt" data-nick="${nick}" ${used?'disabled':''} style="display:flex;align-items:center;gap:8px;justify-content:center;">${swatch(mm.colors,14)}<span>${nick}</span></button>`;
+      }).join('')}
+    </div>
+    <div class="wrong-msg" id="wrong-msg"></div>
+    ${bottom}
+  `;
+
+  quizView.querySelectorAll('.opt').forEach(btn=>{
+    btn.onclick = ()=>{
+      if(quizState!=='playing') return;
+      const nick = btn.getAttribute('data-nick');
+      const expected = quizOrder[quizPicked.length];
+      if(nick===expected){
+        quizPicked.push(nick);
+        if(quizPicked.length===quizOrder.length){
+          quizState='done';
+        }
+        renderQuiz();
+      } else {
+        btn.classList.add('shake');
+        document.getElementById('wrong-msg').textContent = '違うよ、もう一回！';
+        quizState='wrong';
+        setTimeout(()=>{
+          quizPicked = [];
+          quizState='playing';
+          renderQuiz();
+        }, 500);
+      }
+    };
+  });
+
+  const retry = document.getElementById('retry-btn');
+  if(retry) retry.onclick = startQuiz;
+}
+
+/* ---------- Tabs ---------- */
+document.getElementById('tab-learn').onclick = ()=>{
+  document.getElementById('tab-learn').classList.add('active');
+  document.getElementById('tab-quiz').classList.remove('active');
+  learnView.classList.add('active');
+  quizView.classList.remove('active');
+};
+document.getElementById('tab-quiz').onclick = ()=>{
+  document.getElementById('tab-quiz').classList.add('active');
+  document.getElementById('tab-learn').classList.remove('active');
+  quizView.classList.add('active');
+  learnView.classList.remove('active');
+  if(quizOrder.length===0) startQuiz();
+};
+
+renderLearn();
+</script>
+</body>
+</html>
