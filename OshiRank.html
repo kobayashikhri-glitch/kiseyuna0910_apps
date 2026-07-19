@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>推しの坂 - 坂道推しランキング</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    background: #0b0c14;
+    color: #f2efe9;
+    font-family: 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+    padding-bottom: 40px;
+  }
+  .header { padding: 28px 20px 16px; text-align: center; }
+  .eyebrow { font-size: 12px; letter-spacing: 4px; color: #8890a6; margin-bottom: 6px; }
+  h1 { font-size: 26px; margin: 0; font-weight: 800; letter-spacing: 1px; }
+  .sub { font-size: 12px; color: #8890a6; margin-top: 4px; }
+
+  .slope { padding: 4px 14px 8px; }
+  .tier {
+    margin-bottom: 10px;
+    border-radius: 16px;
+    padding: 10px 14px;
+    border: 1px solid;
+  }
+  .tier-head {
+    display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px;
+  }
+  .tier-title { display: flex; align-items: baseline; gap: 8px; }
+  .tier-label { font-size: 17px; font-weight: 800; }
+  .tier-sub { font-size: 11px; color: #9aa0b4; }
+  .tier-count { font-size: 11px; color: #6b7188; }
+  .tier-members { display: flex; gap: 8px; flex-wrap: wrap; min-height: 40px; align-items: center; }
+  .empty-hint { font-size: 12px; color: #5c6178; }
+
+  .chip {
+    display: flex; align-items: center; gap: 6px;
+    background: #ffffff10; border-radius: 999px; padding: 6px 12px;
+    color: #f2efe9; font-size: 13px; font-weight: 600; border: 1px solid;
+  }
+  .dot { width: 6px; height: 6px; border-radius: 999px; display: inline-block; flex-shrink: 0; }
+
+  .filters { display: flex; gap: 8px; padding: 12px 16px 4px; }
+  .filter-btn {
+    flex: 1; padding: 8px 0; border-radius: 999px; font-size: 13px; font-weight: 700;
+    border: 1px solid #33384a; background: transparent; color: #c7cbdb;
+  }
+  .filter-btn.active { border-color: #f2efe9; background: #f2efe9; color: #0b0c14; }
+
+  .pool-wrap { padding: 8px 16px 0; }
+  .pool-label { font-size: 12px; color: #8890a6; margin: 8px 0; }
+  .pool { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pool-chip {
+    display: flex; align-items: center; gap: 6px;
+    background: #161826; border: 1px solid #2a2d40;
+    border-radius: 999px; padding: 7px 12px; color: #e7e5f0; font-size: 13px;
+  }
+  .pool-chip .gen { font-size: 10px; color: #6b7188; }
+
+  .sheet-backdrop {
+    position: fixed; inset: 0; background: #000000aa; display: none;
+    align-items: flex-end; z-index: 50;
+  }
+  .sheet-backdrop.show { display: flex; }
+  .sheet {
+    background: #161826; width: 100%; border-radius: 20px 20px 0 0; padding: 18px 18px 28px;
+  }
+  .sheet-handle { width: 36px; height: 4px; background: #33384a; border-radius: 999px; margin: 0 auto 14px; }
+  .sheet-name { font-size: 16px; font-weight: 800; text-align: center; }
+  .sheet-meta { font-size: 12px; color: #8890a6; text-align: center; margin-bottom: 14px; }
+  .tier-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .tier-choice {
+    padding: 12px 10px; border-radius: 12px; font-size: 13px; font-weight: 700;
+    border: 1px solid; background: transparent;
+  }
+  .tier-choice.selected { background-color: color-mix(in srgb, currentColor 20%, transparent); }
+  .tier-choice.full { opacity: 0.4; }
+  .remove-btn {
+    margin-top: 10px; width: 100%; padding: 10px 0; border-radius: 12px;
+    border: 1px solid #5c6178; color: #c7cbdb; font-size: 13px; background: transparent;
+  }
+
+  button { font-family: inherit; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="eyebrow">SAKAMICHI OSHI SLOPE</div>
+  <h1>推しの坂</h1>
+  <div class="sub">頂上が殿堂入り、麓が推しそう。全員をタップして坂に配置しよう。</div>
+</div>
+
+<div class="slope" id="slope"></div>
+
+<div class="filters" id="filters"></div>
+
+<div class="pool-wrap">
+  <div class="pool-label" id="poolLabel"></div>
+  <div class="pool" id="pool"></div>
+</div>
+
+<div class="sheet-backdrop" id="sheetBackdrop">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sheet-handle"></div>
+    <div class="sheet-name" id="sheetName"></div>
+    <div class="sheet-meta" id="sheetMeta"></div>
+    <div class="tier-grid" id="tierGrid"></div>
+    <button class="remove-btn" id="removeBtn" style="display:none">坂から外す（未配置に戻す）</button>
+  </div>
+</div>
+
+<script>
+// ─── メンバーデータ（2026年7月時点の現役メンバー） ───
+const NOGIZAKA = [
+  ["伊藤理々杏","3期"],["岩本蓮加","3期"],["吉田綾乃クリスティー","3期"],
+  ["遠藤さくら","4期"],["賀喜遥香","4期"],["金川紗耶","4期"],["黒見明香","4期"],
+  ["柴田柚菜","4期"],["田村真佑","4期"],["筒井あやめ","4期"],["林瑠奈","4期"],["弓木奈於","4期"],
+  ["五百城茉央","5期"],["池田瑛紗","5期"],["一ノ瀬美空","5期"],["井上和","5期"],
+  ["岡本姫奈","5期"],["小川彩","5期"],["奥田いろは","5期"],["川﨑桜","5期"],
+  ["菅原咲月","5期"],["冨里奈央","5期"],["中西アルノ","5期"],
+  ["愛宕心響","6期"],["大越ひなの","6期"],["小津玲奈","6期"],["海邉朱莉","6期"],
+  ["川端晃菜","6期"],["鈴木佑捺","6期"],["瀬戸口心月","6期"],["長嶋凛桜","6期"],
+  ["増田三莉音","6期"],["森平麗心","6期"],["矢田萌華","6期"],
+].map(([name,gen],i)=>({id:`n${i}`,name,gen,group:"nogi"}));
+
+const HINATA = [
+  ["金村美玖","2期"],["小坂菜緒","2期"],
+  ["上村ひなの","3期"],["髙橋未来虹","3期"],["森本茉莉","3期"],["山口陽世","3期"],
+  ["石塚瑶季","4期"],["小西夏菜実","4期"],["清水理央","4期"],["正源司陽子","4期"],
+  ["竹内希来里","4期"],["平尾帆夏","4期"],["平岡海月","4期"],["藤嶌果歩","4期"],
+  ["宮地すみれ","4期"],["山下葉留花","4期"],["渡辺莉奈","4期"],
+  ["大田美月","5期"],["大野愛実","5期"],["片山紗希","5期"],["蔵盛妃那乃","5期"],
+  ["坂井新奈","5期"],["佐藤優羽","5期"],["下田衣珠季","5期"],["高井俐香","5期"],
+  ["鶴崎仁香","5期"],["松尾桜","5期"],
+].map(([name,gen],i)=>({id:`h${i}`,name,gen,group:"hinata"}));
+
+const SAKURA = [
+  ["遠藤光莉","2期"],["大園玲","2期"],["大沼晶保","2期"],["幸阪茉里乃","2期"],
+  ["田村保乃","2期"],["藤吉夏鈴","2期"],["増本綺良","2期"],["松田里奈","2期"],
+  ["森田ひかる","2期"],["守屋麗奈","2期"],["山﨑天","2期"],
+  ["石森璃花","3期"],["遠藤理子","3期"],["小田倉麗奈","3期"],["小島凪紗","3期"],
+  ["谷口愛季","3期"],["中嶋優月","3期"],["的野美青","3期"],["向井純葉","3期"],
+  ["村井優","3期"],["村山美羽","3期"],["山下瞳月","3期"],
+  ["浅井恋乃未","4期"],["稲熊ひな","4期"],["勝又春","4期"],["佐藤愛桜","4期"],
+  ["中川智尋","4期"],["松本和子","4期"],["目黒陽色","4期"],["山川宇衣","4期"],
+  ["山田桃実","4期"],
+].map(([name,gen],i)=>({id:`s${i}`,name,gen,group:"sakura"}));
+
+const ALL_MEMBERS = [...NOGIZAKA, ...HINATA, ...SAKURA];
+
+const TIERS = [
+  { key:"legend",    label:"殿堂入り", sub:"永遠の推し",   color:"#d4af37", bg:"#2a2410" },
+  { key:"top",       label:"最推し",   sub:"一番大好き",   color:"#ff5c8a", bg:"#2a121c" },
+  { key:"semi",      label:"準推し",   sub:"すぐ隣にいる", color:"#ff8f5c", bg:"#2a1a10" },
+  { key:"runner",    label:"次点推し", sub:"僅差の存在",   color:"#ffc94d", bg:"#2a2410" },
+  { key:"expect",    label:"期待推し", sub:"伸びしろ枠",   color:"#4ddba8", bg:"#0f2420" },
+  { key:"potential", label:"推しそう", sub:"気になる新芽", color:"#6ec3ff", bg:"#101f2a" },
+];
+const MAX_PER_TIER = 3;
+
+const GROUP_META = {
+  nogi:   { label:"乃木坂46", color:"#a78bfa" },
+  hinata: { label:"日向坂46", color:"#ffb648" },
+  sakura: { label:"櫻坂46",   color:"#ff6f91" },
+};
+
+const STORAGE_KEY = "oshi-slope-ranking-v1";
+
+// ─── 状態管理 ───
+let assign = {};       // memberId -> tierKey
+let filter = "all";    // all | nogi | hinata | sakura
+let sheetMemberId = null;
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) assign = JSON.parse(raw);
+  } catch (e) { assign = {}; }
+}
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(assign)); } catch (e) {}
+}
+
+function memberById(id) { return ALL_MEMBERS.find(m => m.id === id); }
+function countInTier(tierKey) {
+  return Object.values(assign).filter(t => t === tierKey).length;
+}
+
+function assignTo(memberId, tierKey) {
+  if (tierKey && countInTier(tierKey) >= MAX_PER_TIER && assign[memberId] !== tierKey) return;
+  if (tierKey) assign[memberId] = tierKey;
+  else delete assign[memberId];
+  saveState();
+  closeSheet();
+  render();
+}
+
+function openSheet(memberId) {
+  sheetMemberId = memberId;
+  renderSheet();
+  document.getElementById("sheetBackdrop").classList.add("show");
+}
+function closeSheet() {
+  sheetMemberId = null;
+  document.getElementById("sheetBackdrop").classList.remove("show");
+}
+
+function renderFilters() {
+  const wrap = document.getElementById("filters");
+  const options = [["all","すべて"],["nogi","乃木坂46"],["hinata","日向坂46"],["sakura","櫻坂46"]];
+  wrap.innerHTML = "";
+  options.forEach(([key,label]) => {
+    const btn = document.createElement("button");
+    btn.className = "filter-btn" + (filter === key ? " active" : "");
+    btn.textContent = label;
+    btn.onclick = () => { filter = key; render(); };
+    wrap.appendChild(btn);
+  });
+}
+
+function renderSlope() {
+  const wrap = document.getElementById("slope");
+  wrap.innerHTML = "";
+  TIERS.forEach((tier, idx) => {
+    const members = ALL_MEMBERS.filter(m => assign[m.id] === tier.key);
+    const full = members.length >= MAX_PER_TIER;
+
+    const box = document.createElement("div");
+    box.className = "tier";
+    box.style.marginLeft = (idx * 4) + "px";
+    box.style.background = tier.bg;
+    box.style.borderColor = tier.color + "33";
+    if (idx === 0) box.style.boxShadow = `0 0 24px ${tier.color}22`;
+
+    const head = document.createElement("div");
+    head.className = "tier-head";
+    head.innerHTML = `
+      <div class="tier-title">
+        <span class="tier-label" style="color:${tier.color}">${tier.label}</span>
+        <span class="tier-sub">${tier.sub}</span>
+      </div>
+      <span class="tier-count" style="color:${full ? tier.color : '#6b7188'}">${members.length}/${MAX_PER_TIER}</span>
+    `;
+    box.appendChild(head);
+
+    const memWrap = document.createElement("div");
+    memWrap.className = "tier-members";
+    if (members.length === 0) {
+      memWrap.innerHTML = `<span class="empty-hint">まだ誰もいません</span>`;
+    } else {
+      members.forEach(m => {
+        const chip = document.createElement("button");
+        chip.className = "chip";
+        chip.style.borderColor = tier.color + "66";
+        chip.innerHTML = `<span class="dot" style="background:${GROUP_META[m.group].color}"></span>${m.name}`;
+        chip.onclick = () => openSheet(m.id);
+        memWrap.appendChild(chip);
+      });
+    }
+    box.appendChild(memWrap);
+    wrap.appendChild(box);
+  });
+}
+
+function renderPool() {
+  const pool = ALL_MEMBERS.filter(m => !assign[m.id] && (filter === "all" || m.group === filter));
+  document.getElementById("poolLabel").textContent = `未配置：${pool.length}名（タップして坂に配置）`;
+  const wrap = document.getElementById("pool");
+  wrap.innerHTML = "";
+  if (pool.length === 0) {
+    wrap.innerHTML = `<div style="font-size:13px;color:#5c6178;padding:12px 0">このグループは全員配置済みです</div>`;
+    return;
+  }
+  pool.forEach(m => {
+    const chip = document.createElement("button");
+    chip.className = "pool-chip";
+    chip.innerHTML = `<span class="dot" style="background:${GROUP_META[m.group].color}"></span>${m.name}<span class="gen">${m.gen}</span>`;
+    chip.onclick = () => openSheet(m.id);
+    wrap.appendChild(chip);
+  });
+}
+
+function renderSheet() {
+  if (!sheetMemberId) return;
+  const m = memberById(sheetMemberId);
+  document.getElementById("sheetName").textContent = m.name;
+  document.getElementById("sheetMeta").textContent = `${GROUP_META[m.group].label} ・ ${m.gen}`;
+
+  const grid = document.getElementById("tierGrid");
+  grid.innerHTML = "";
+  TIERS.forEach(tier => {
+    const full = countInTier(tier.key) >= MAX_PER_TIER && assign[sheetMemberId] !== tier.key;
+    const selected = assign[sheetMemberId] === tier.key;
+    const btn = document.createElement("button");
+    btn.className = "tier-choice" + (full ? " full" : "") + (selected ? " selected" : "");
+    btn.style.borderColor = full ? "#33384a" : tier.color + "88";
+    btn.style.color = full ? "#4a4f63" : tier.color;
+    if (selected) btn.style.background = tier.color + "33";
+    btn.textContent = tier.label + (full ? "（満）" : "");
+    btn.disabled = full;
+    btn.onclick = () => assignTo(sheetMemberId, tier.key);
+    grid.appendChild(btn);
+  });
+
+  const removeBtn = document.getElementById("removeBtn");
+  if (assign[sheetMemberId]) {
+    removeBtn.style.display = "block";
+    removeBtn.onclick = () => assignTo(sheetMemberId, null);
+  } else {
+    removeBtn.style.display = "none";
+  }
+}
+
+document.getElementById("sheetBackdrop").addEventListener("click", closeSheet);
+
+function render() {
+  renderFilters();
+  renderSlope();
+  renderPool();
+}
+
+loadState();
+render();
+</script>
+</body>
+</html>
