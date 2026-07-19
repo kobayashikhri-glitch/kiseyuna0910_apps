@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MEMORY DELETE</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #000;
+    min-height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  * { box-sizing: border-box; }
+  body { font-family: 'Courier New', monospace; }
+</style>
+</head>
+<body>
+
+<div id="screen" style="--accent:#5fd8c9;--accent-dim:#3a8a80;--accent-dark:#12312e;--accent-border:#2a5c56;background:#0a1518;border-radius:24px;padding:20px;position:relative;width:100%;max-width:480px;">
+
+<div style="background:#0d2226;border:3px solid #061012;border-radius:16px;padding:28px 32px;position:relative;box-shadow:inset 0 0 40px rgba(0,0,0,0.5);">
+
+<div style="color:var(--accent);font-size:13px;letter-spacing:1px;margin-bottom:2px;transition:color 0.3s;">PROTOTYPE UNIT -- "R"</div>
+<div style="color:var(--accent-dim);font-size:10px;letter-spacing:1px;margin-bottom:10px;transition:color 0.3s;">MEMORY ANALYSIS SYSTEM</div>
+<div style="color:var(--accent);font-size:15px;letter-spacing:2px;margin-bottom:18px;transition:color 0.3s;">SESSION 001</div>
+
+<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
+  <span id="statusText" style="color:var(--accent);font-size:15px;letter-spacing:1px;transition:color 0.3s;">DELETING MEMORY...</span>
+  <span id="pctText" style="color:var(--accent);font-size:15px;display:inline-block;transition:color 0.3s;">0%</span>
+</div>
+
+<div id="meter" style="display:flex;gap:3px;align-items:flex-end;height:27px;margin-bottom:24px;"></div>
+
+<div style="display:flex;gap:20px;">
+  <div style="flex:1;min-width:0;">
+    <div id="itemList" style="display:flex;flex-direction:column;gap:8px;"></div>
+  </div>
+  <div style="width:130px;height:130px;position:relative;flex-shrink:0;">
+    <svg viewBox="0 0 100 100" style="width:100%;height:100%;">
+      <circle cx="50" cy="50" r="38" fill="none" stroke="#1c4b47" stroke-width="1.5"/>
+      <circle id="ring" cx="50" cy="50" r="38" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="238" stroke-dashoffset="238" transform="rotate(-90 50 50)" style="transition:stroke 0.3s;"/>
+    </svg>
+  </div>
+</div>
+
+<div style="display:flex;gap:12px;justify-content:center;margin-top:26px;align-items:center;">
+  <button id="deleteBtn" style="background:transparent;border:1px solid var(--accent);color:var(--accent);padding:9px 26px;font-size:13px;letter-spacing:2px;border-radius:3px;cursor:pointer;transition:color 0.3s,border-color 0.3s;font-family:'Courier New',monospace;">EXECUTE</button>
+  <button id="resetBtn" style="background:transparent;border:1px solid var(--accent-dim);color:var(--accent);padding:9px 18px;font-size:12px;letter-spacing:1px;border-radius:3px;cursor:pointer;transition:color 0.3s,border-color 0.3s;font-family:'Courier New',monospace;">RESET</button>
+  <button id="muteBtn" title="ミュート切り替え" style="background:transparent;border:1px solid var(--accent-dim);color:var(--accent-dim);padding:9px 12px;font-size:13px;border-radius:3px;cursor:pointer;transition:color 0.3s,border-color 0.3s;font-family:'Courier New',monospace;">♪</button>
+</div>
+
+</div>
+</div>
+
+<style>
+@keyframes memPop {
+  0% { transform: scaleY(0); }
+  60% { transform: scaleY(1.25); }
+  100% { transform: scaleY(1); }
+}
+.memBlock.active {
+  background: var(--accent) !important;
+  animation: memPop 0.09s steps(2) forwards;
+  transform-origin: bottom;
+}
+.memBlock {
+  transition: background 0.3s;
+}
+</style>
+
+<script>
+(function(){
+  var screen=document.getElementById('screen');
+
+  var audioCtx=null;
+  var muted=false;
+  function getCtx(){
+    if(!audioCtx){
+      audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    }
+    if(audioCtx.state==='suspended')audioCtx.resume();
+    return audioCtx;
+  }
+  function playTone(freq,duration,type,volume){
+    if(muted)return;
+    var ctx=getCtx();
+    var osc=ctx.createOscillator();
+    var gain=ctx.createGain();
+    osc.type=type||'square';
+    osc.frequency.value=freq;
+    gain.gain.value=0;
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    var t0=ctx.currentTime;
+    gain.gain.setValueAtTime(0,t0);
+    gain.gain.linearRampToValueAtTime(volume||0.045,t0+0.002);
+    gain.gain.exponentialRampToValueAtTime(0.0001,t0+duration);
+    osc.start(t0);
+    osc.stop(t0+duration+0.01);
+  }
+  var tickCount=0;
+  function playBlip(){
+    playTone(650+(tickCount%8)*18,0.02,'square',0.045);
+    tickCount++;
+  }
+
+  var items=['感情反応ログ','非合理行動記録','人物相互作用キャッシュ','非効率思考パターン','個体特性モジュール','未処理メモリ断片'];
+  var listEl=document.getElementById('itemList');
+  var rows=items.map(function(name){
+    var row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;color:var(--accent-dim);font-size:11px;transition:color 0.3s;';
+    var label=document.createElement('span');
+    label.textContent=name+'…';
+    label.style.cssText='display:inline-block;width:130px;flex-shrink:0;white-space:nowrap;overflow:visible;';
+    var mark=document.createElement('span');
+    mark.textContent='◯';
+    mark.style.cssText='color:var(--accent-dim);font-size:10px;flex-shrink:0;letter-spacing:1px;transition:color 0.3s;width:80px;text-align:center;display:inline-block;white-space:nowrap;';
+    row.appendChild(label);
+    row.appendChild(mark);
+    listEl.appendChild(row);
+    return {row:row,label:label,mark:mark,done:false};
+  });
+
+  var meter=document.getElementById('meter');
+  var NUM_BLOCKS=25;
+  var blocks=[];
+  for(var i=0;i<NUM_BLOCKS;i++){
+    var b=document.createElement('div');
+    b.className='memBlock';
+    b.style.cssText='flex:1;height:100%;background:var(--accent-dark);border:1px solid var(--accent-border);';
+    meter.appendChild(b);
+    blocks.push(b);
+  }
+
+  var pctText=document.getElementById('pctText');
+  var statusText=document.getElementById('statusText');
+  var ring=document.getElementById('ring');
+  var deleteBtn=document.getElementById('deleteBtn');
+  var resetBtn=document.getElementById('resetBtn');
+  var muteBtn=document.getElementById('muteBtn');
+  var running=false;
+  var progress=0;
+  var timer=null;
+  var checkedIndex=0;
+  var filledBlocks=0;
+  var STEP=0.25;
+  var alertOn=false;
+
+  muteBtn.addEventListener('click',function(){
+    muted=!muted;
+    muteBtn.textContent=muted?'✕':'♪';
+  });
+
+  function setAlert(on){
+    if(on===alertOn)return;
+    alertOn=on;
+    if(on){
+      screen.style.setProperty('--accent','#ff5c5c');
+      screen.style.setProperty('--accent-dim','#8a3a3a');
+      screen.style.setProperty('--accent-dark','#311414');
+      screen.style.setProperty('--accent-border','#5c2a2a');
+    }else{
+      screen.style.setProperty('--accent','#5fd8c9');
+      screen.style.setProperty('--accent-dim','#3a8a80');
+      screen.style.setProperty('--accent-dark','#12312e');
+      screen.style.setProperty('--accent-border','#2a5c56');
+    }
+  }
+
+  function markDone(r){
+    r.done=true;
+    r.mark.textContent='COMPLETED';
+    r.mark.style.color='var(--accent)';
+  }
+
+  function reset(){
+    running=false;
+    if(timer)clearInterval(timer);
+    progress=0;
+    checkedIndex=0;
+    filledBlocks=0;
+    tickCount=0;
+    setAlert(false);
+    pctText.textContent='0%';
+    statusText.textContent='DELETING MEMORY...';
+    ring.setAttribute('stroke-dashoffset','238');
+    blocks.forEach(function(b){
+      b.className='memBlock';
+    });
+    rows.forEach(function(r){
+      r.done=false;
+      r.mark.textContent='◯';
+      r.mark.style.color='var(--accent-dim)';
+    });
+    deleteBtn.textContent='EXECUTE';
+  }
+
+  function start(){
+    if(running)return;
+    getCtx();
+    running=true;
+    deleteBtn.textContent='RUNNING';
+    timer=setInterval(function(){
+      progress+=STEP;
+      var shown=Math.floor(progress);
+      playBlip();
+      setAlert(shown>=70);
+      if(progress>=100){
+        progress=100;
+        shown=100;
+        pctText.textContent='100%';
+        while(filledBlocks<NUM_BLOCKS){
+          blocks[filledBlocks].classList.add('active');
+          filledBlocks++;
+        }
+        ring.setAttribute('stroke-dashoffset','0');
+        rows.forEach(function(r){
+          markDone(r);
+        });
+        clearInterval(timer);
+        running=false;
+        statusText.textContent='DELETION COMPLETE';
+        deleteBtn.textContent='DONE';
+        return;
+      }
+      pctText.textContent=shown+'%';
+      ring.setAttribute('stroke-dashoffset',(238-238*progress/100).toFixed(1));
+
+      var targetBlocks=Math.floor((progress/100)*NUM_BLOCKS);
+      while(filledBlocks<targetBlocks){
+        blocks[filledBlocks].classList.add('active');
+        filledBlocks++;
+      }
+
+      var targetIndex=Math.floor((progress/100)*rows.length);
+      while(checkedIndex<targetIndex && checkedIndex<rows.length){
+        markDone(rows[checkedIndex]);
+        checkedIndex++;
+      }
+    },10);
+  }
+
+  deleteBtn.addEventListener('click',function(){
+    if(deleteBtn.textContent==='DONE')return;
+    start();
+  });
+  resetBtn.addEventListener('click',reset);
+})();
+</script>
+
+</body>
+</html>
