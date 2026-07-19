@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>推し活タイプ診断 | OSHI PASS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kaisei+Decol&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#14112B;
+    --navy2:#1E1B3C;
+    --navy3:#272253;
+    --magenta:#FF3D8A;
+    --gold:#FFCB47;
+    --lavender:#B9A6FF;
+    --paper:#FBF7EF;
+    --ink:#1E1B3C;
+    --soft:#E4DEFD;
+    --soft-dim:#9C93C9;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{
+    background:var(--navy);
+    color:var(--soft);
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+  body{
+    background-image:
+      radial-gradient(circle at 15% 10%, rgba(255,61,138,0.20), transparent 45%),
+      radial-gradient(circle at 85% 25%, rgba(255,203,71,0.14), transparent 40%),
+      radial-gradient(circle at 50% 90%, rgba(185,166,255,0.16), transparent 45%);
+    background-attachment:fixed;
+  }
+  .app{
+    max-width:480px;
+    margin:0 auto;
+    min-height:100vh;
+    padding:0 20px 60px;
+    position:relative;
+  }
+  .screen{ display:none; animation:fade .5s ease; }
+  .screen.active{ display:block; }
+  @keyframes fade{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
+
+  /* ---------- Header ---------- */
+  .brand{
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    padding:28px 0 6px;
+    letter-spacing:.14em;
+    font-family:'Space Mono', monospace;
+    font-size:12px;
+    color:var(--soft-dim);
+  }
+  .brand span.dot{ color:var(--magenta); }
+
+  /* ---------- Start screen ---------- */
+  .hero-title{
+    font-family:'Kaisei Decol', serif;
+    font-size:38px;
+    line-height:1.35;
+    text-align:center;
+    margin:18px 0 10px;
+    background:linear-gradient(95deg, #fff 10%, var(--gold) 55%, var(--magenta) 90%);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .hero-sub{
+    text-align:center;
+    color:var(--soft-dim);
+    font-size:14px;
+    line-height:1.9;
+    margin-bottom:28px;
+  }
+  .axis-preview{
+    display:grid; grid-template-columns:1fr 1fr; gap:10px;
+    margin-bottom:30px;
+  }
+  .axis-chip{
+    background:rgba(255,255,255,0.04);
+    border:1px solid rgba(255,255,255,0.08);
+    border-radius:14px;
+    padding:12px 14px;
+  }
+  .axis-chip .lbl{ font-size:11px; color:var(--soft-dim); letter-spacing:.06em; }
+  .axis-chip .pair{ font-family:'Space Mono',monospace; font-size:13px; color:var(--gold); margin-top:4px; }
+
+  .btn{
+    display:block; width:100%;
+    text-align:center;
+    padding:16px 20px;
+    border-radius:100px;
+    border:none;
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-weight:700;
+    font-size:16px;
+    cursor:pointer;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .btn-primary{
+    background:linear-gradient(95deg, var(--magenta), #ff6fa8);
+    color:#fff;
+    box-shadow:0 10px 24px rgba(255,61,138,0.35);
+  }
+  .btn-primary:active{ transform:scale(.97); }
+  .btn-ghost{
+    background:transparent;
+    color:var(--soft);
+    border:1px solid rgba(255,255,255,0.25);
+    margin-top:12px;
+  }
+
+  .count-note{
+    text-align:center; margin-top:14px;
+    font-size:12px; color:var(--soft-dim);
+    font-family:'Space Mono', monospace;
+  }
+
+  /* ---------- Quiz screen ---------- */
+  .progress-wrap{ margin:20px 0 8px; }
+  .progress-track{
+    width:100%; height:6px; border-radius:6px;
+    background:rgba(255,255,255,0.08);
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;
+    background:linear-gradient(90deg, var(--gold), var(--magenta));
+    width:0%;
+    transition:width .35s ease;
+  }
+  .progress-label{
+    display:flex; justify-content:space-between;
+    font-family:'Space Mono',monospace;
+    font-size:11px; color:var(--soft-dim);
+    margin-top:6px; letter-spacing:.05em;
+  }
+
+  .q-axis-tag{
+    display:inline-block;
+    font-family:'Space Mono',monospace;
+    font-size:11px;
+    color:var(--navy);
+    background:var(--gold);
+    padding:4px 10px;
+    border-radius:100px;
+    margin:22px 0 14px;
+    letter-spacing:.05em;
+  }
+  .q-text{
+    font-size:20px;
+    font-weight:700;
+    line-height:1.6;
+    margin-bottom:22px;
+    color:#fff;
+  }
+  .option{
+    display:block; width:100%;
+    text-align:left;
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.10);
+    border-radius:16px;
+    padding:18px 18px;
+    margin-bottom:12px;
+    color:var(--soft);
+    font-size:15px;
+    line-height:1.6;
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease, transform .1s ease;
+  }
+  .option:active{ transform:scale(.98); }
+  .option:hover{ border-color:var(--lavender); background:rgba(185,166,255,0.09); }
+  .option .letter{
+    display:inline-block;
+    font-family:'Space Mono',monospace;
+    font-size:11px;
+    color:var(--gold);
+    margin-right:8px;
+  }
+  .back-link{
+    display:inline-block; margin-top:6px;
+    font-size:12px; color:var(--soft-dim);
+    cursor:pointer; text-decoration:underline;
+  }
+
+  /* ---------- Result screen: ticket ---------- */
+  .result-intro{
+    text-align:center; margin:26px 0 18px;
+    color:var(--soft-dim); font-size:13px; letter-spacing:.08em;
+    font-family:'Space Mono',monospace;
+  }
+  .ticket{
+    background:var(--paper);
+    color:var(--ink);
+    border-radius:20px;
+    position:relative;
+    box-shadow:0 24px 50px rgba(0,0,0,0.45);
+    overflow:hidden;
+  }
+  .ticket-top{
+    padding:26px 24px 20px;
+    position:relative;
+  }
+  .ticket-top::after{
+    content:"";
+    position:absolute; left:0; right:0; bottom:-1px;
+    height:0;
+    border-bottom:2px dashed rgba(30,27,59,0.25);
+  }
+  .ticket-eyebrow{
+    font-family:'Space Mono',monospace;
+    font-size:11px; letter-spacing:.14em;
+    color:var(--magenta);
+    display:flex; justify-content:space-between;
+  }
+  .ticket-code{
+    font-family:'Space Mono',monospace;
+    font-size:44px; font-weight:700;
+    letter-spacing:.06em;
+    margin:10px 0 2px;
+    color:var(--navy);
+  }
+  .ticket-name{
+    font-family:'Kaisei Decol', serif;
+    font-size:26px;
+    line-height:1.4;
+    margin-bottom:6px;
+  }
+  .ticket-catch{
+    font-size:13px; color:#6a6285;
+  }
+  .ticket-notch-l, .ticket-notch-r{
+    position:absolute; top:calc(100% - 1px + 0px);
+    width:22px; height:22px;
+    background:var(--navy);
+    border-radius:50%;
+    transform:translateY(-50%);
+  }
+  .ticket-notch-l{ left:-11px; }
+  .ticket-notch-r{ right:-11px; }
+
+  .ticket-bottom{ padding:22px 24px 26px; }
+  .ticket-desc{ font-size:14.5px; line-height:2; margin-bottom:20px; }
+
+  .meter-block{ margin-bottom:16px; }
+  .meter-labels{
+    display:flex; justify-content:space-between;
+    font-size:11px; font-weight:700; margin-bottom:6px;
+    color:#4c4570;
+  }
+  .meter-bar{
+    width:100%; height:10px; border-radius:100px;
+    background:#EFE9DC; overflow:hidden;
+    display:flex;
+  }
+  .meter-fill-a{ height:100%; background:linear-gradient(90deg, var(--magenta), #ff85b3); }
+  .meter-fill-b{ height:100%; background:#DCD5EE; }
+
+  .compat-box{
+    margin-top:22px; padding:14px 16px;
+    background:#F1ECFF; border-radius:14px;
+    font-size:13px; line-height:1.8;
+  }
+  .compat-box b{ color:var(--magenta); }
+
+  .result-actions{ margin-top:26px; }
+
+  .share-hint{
+    text-align:center; font-size:12px; color:var(--soft-dim);
+    margin-top:14px; line-height:1.8;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="brand">OSHI<span class="dot">・</span>PASS</div>
+
+  <!-- ============ START SCREEN ============ -->
+  <section id="screen-start" class="screen active">
+    <h1 class="hero-title">推し活タイプ診断</h1>
+    <p class="hero-sub">
+      あなたの推し活スタイルを4つの軸・全16タイプで診断。<br>
+      20の質問に答えて、あなたの「推し活チケット」を発行します。
+    </p>
+
+    <div class="axis-preview">
+      <div class="axis-chip"><div class="lbl">参戦スタイル</div><div class="pair">現場 / おうち</div></div>
+      <div class="axis-chip"><div class="lbl">推し方</div><div class="pair">単推し / 箱推し</div></div>
+      <div class="axis-chip"><div class="lbl">表現スタイル</div><div class="pair">発信派 / 静観派</div></div>
+      <div class="axis-chip"><div class="lbl">行動パターン</div><div class="pair">計画派 / 衝動派</div></div>
+    </div>
+
+    <button class="btn btn-primary" onclick="startQuiz()">診断をはじめる</button>
+    <div class="count-note">Q1 〜 Q20・所要時間 約2分</div>
+  </section>
+
+  <!-- ============ QUIZ SCREEN ============ -->
+  <section id="screen-quiz" class="screen">
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-label">
+        <span id="progressText">Q1 / 20</span>
+        <span id="axisText">参戦スタイル</span>
+      </div>
+    </div>
+
+    <div class="q-axis-tag" id="axisTag">参戦スタイル</div>
+    <div class="q-text" id="qText">質問がここに入ります</div>
+
+    <div id="optionsWrap"></div>
+
+    <span class="back-link" id="backLink" onclick="goBack()">ひとつ前の質問に戻る</span>
+  </section>
+
+  <!-- ============ RESULT SCREEN ============ -->
+  <section id="screen-result" class="screen">
+    <div class="result-intro">YOUR OSHI-KATSU TICKET</div>
+
+    <div class="ticket">
+      <div class="ticket-top">
+        <div class="ticket-eyebrow"><span id="ticketDate">DATE —</span><span>NO.001</span></div>
+        <div class="ticket-code" id="ticketCode">LOEP</div>
+        <div class="ticket-name" id="ticketName">タイプ名</div>
+        <div class="ticket-catch" id="ticketCatch">キャッチコピー</div>
+        <div class="ticket-notch-l"></div>
+        <div class="ticket-notch-r"></div>
+      </div>
+      <div class="ticket-bottom">
+        <p class="ticket-desc" id="ticketDesc"></p>
+
+        <div id="meters"></div>
+
+        <div class="compat-box" id="compatBox"></div>
+      </div>
+    </div>
+
+    <div class="result-actions">
+      <button class="btn btn-primary" onclick="restartQuiz()">もう一度診断する</button>
+    </div>
+    <p class="share-hint">スクリーンショットを撮って推し仲間とシェアしてね</p>
+  </section>
+
+</div>
+
+<script>
+/* ================= DATA ================= */
+
+// axis definition: key -> {A letter/label, B letter/label}
+const AXES = [
+  { key:'field', name:'参戦スタイル', A:{letter:'L', label:'現場'}, B:{letter:'S', label:'おうち'} },
+  { key:'oshi',  name:'推し方',       A:{letter:'O', label:'単推し'}, B:{letter:'M', label:'箱推し'} },
+  { key:'voice', name:'表現スタイル', A:{letter:'E', label:'発信派'}, B:{letter:'Q', label:'静観派'} },
+  { key:'act',   name:'行動パターン', A:{letter:'P', label:'計画派'}, B:{letter:'D', label:'衝動派'} },
+];
+
+const QUESTIONS = [
+  // --- 軸1: field (L/S) ---
+  { axis:0, text:'推しのライブ、当落発表を待つ間の気持ちは？', a:'何としても現場に行く方法をあれこれ考えている', b:'配信でも観られるか、先にチェックしている' },
+  { axis:0, text:'完全オフの休日、気づいたら何をしてる？', a:'気づいたら現場に向かうルートを検索している', b:'気づいたら配信やSNSのタイムラインを眺めている' },
+  { axis:0, text:'推しの新しいイベント情報を見て最初に思うことは？', a:'チケット取れるかな、現場行きたいな', b:'配信あるかな、家でゆっくり楽しめるかな' },
+  { axis:0, text:'遠方で開催される現場について', a:'遠征前提で交通・宿泊のスケジュールを組む', b:'近場の現場か配信で十分満足できる' },
+  { axis:0, text:'推し活で一番のご褒美だと感じる瞬間は？', a:'現場でペンライトを振っているとき', b:'家でゆっくり配信や映像を見返しているとき' },
+
+  // --- 軸2: oshi (O/M) ---
+  { axis:1, text:'グループの中での推しの位置づけは？', a:'一人に決めている(単推し)', b:'メンバー全員が推し(箱推し)' },
+  { axis:1, text:'グッズを買うときのスタンスは？', a:'推しのグッズを中心に集める', b:'メンバー全員分揃えたくなる' },
+  { axis:1, text:'コールや応援をするとき、一番熱が入るのは？', a:'推しの見せ場・パート', b:'誰の見せ場でも均等に盛り上がる' },
+  { axis:1, text:'新メンバー加入や卒業のニュースを見たら？', a:'自分の推しへの影響がまず気になる', b:'グループ全体の今後がまず気になる' },
+  { axis:1, text:'SNSでフォローしているのは主に？', a:'推し本人のアカウント中心', b:'メンバー全員のアカウント' },
+
+  // --- 軸3: voice (E/Q) ---
+  { axis:2, text:'神対応やライブでの感動を経験したら？', a:'すぐSNSに気持ちを投稿したくなる', b:'自分の中でじっくり噛みしめたい' },
+  { axis:2, text:'友人に「推しの何がいいの？」と聞かれたら？', a:'熱く語ってプレゼンしてしまう', b:'簡単に説明して、深くは語らない' },
+  { axis:2, text:'現場やイベントに参加したあとは？', a:'長文で感想をSNSにまとめる', b:'特に書かず、自分の中にしまっておく' },
+  { axis:2, text:'新曲や新しいグラビアが出たら？', a:'感想スレッドや実況にすぐ参加する', b:'一人で静かにじっくり堪能する' },
+  { axis:2, text:'推し活仲間との関わり方は？', a:'積極的にオフ会やSNSで交流する', b:'深くは関わらず、マイペースに楽しむ' },
+
+  // --- 軸4: act (P/D) ---
+  { axis:3, text:'グッズの予約・購入スタイルは？', a:'予定を立てて計画的に予約する', b:'気になったらその場でポチる' },
+  { axis:3, text:'現場参戦のスケジュールの組み方は？', a:'何ヶ月も前から予定を組んでおく', b:'直前になってから決めることが多い' },
+  { axis:3, text:'推し活にかけるお財布事情は？', a:'月ごとに予算を決めて管理している', b:'その時の気分で使いたいだけ使う' },
+  { axis:3, text:'遠征を伴う現場の準備は？', a:'交通・宿泊まできっちり計画する', b:'現地に着いてから考えることが多い' },
+  { axis:3, text:'推し活における自分の目標は？', a:'皆勤賞など、長期的な目標を決めている', b:'その時々の気持ちのまま楽しみたい' },
+];
+
+const TYPES = {
+  LOEP:{ name:'現場伝道師', catch:'推し一筋、現場も発信も全力投球。', color:'magenta',
+    desc:'現場に足を運ぶことが生きがいで、推しは一人と決めたら迷わない一途さの持ち主。感動はその場でSNSに乗せて発信し、遠征や参戦スケジュールも抜かりなく計画する、行動力と計画性を兼ね備えた「推し活の伝道師」タイプ。',
+    compat:'SMQD（マイペース隊長）' },
+  LOED:{ name:'即決アタッカー', catch:'気づいたら現場のチケットを取っている。', color:'gold',
+    desc:'現場愛と単推しへの一途さは人一倍だけど、動くときはいつも直感。感想はすぐSNSに投稿する発信派で、遠征も「行くと決めたらもう行動している」フットワークの軽さが持ち味。',
+    compat:'SMQP（静かな箱推し）' },
+  LOQP:{ name:'静かなる忠犬', catch:'心の中で誰よりも熱く燃えている。', color:'lavender',
+    desc:'現場に通い詰める一途な単推し勢だが、感想はSNSにあまり出さず胸の内で燃やすタイプ。参戦スケジュールはしっかり計画してから動く、静かで堅実な忠誠心の持ち主。',
+    compat:'SMED（テンション爆上げ勢）' },
+  LOQD:{ name:'一途な放浪者', catch:'呼ばれた気がしたら現場にいる。', color:'lavender',
+    desc:'単推しへの想いは強いけれど、発信は控えめで気持ちは自分の中に。計画よりも「行きたい」という衝動を優先し、ふらっと現場に現れる自由な一途さが魅力。',
+    compat:'SMEP（箱推しの広報担当）' },
+  LMEP:{ name:'祭りの仕切り役', catch:'現場もSNSもグループまるごと盛り上げる。', color:'magenta',
+    desc:'グループ全体を現場で応援する箱推し勢。SNS発信も積極的で、遠征・現場のスケジュール管理も得意な、まさに「祭りの仕切り役」といえる存在。',
+    compat:'SOQD（心の中の伝道師）' },
+  LMED:{ name:'現場の花火', catch:'テンションが上がったら止まらない。', color:'gold',
+    desc:'箱推しで現場が大好き、テンション高くSNSで実況するタイプ。計画よりも勢いで参戦を決めることが多く、その場の熱量をそのままエネルギーに変える花火のような存在。',
+    compat:'SOQP（静かな守護者）' },
+  LMQP:{ name:'縁の下の箱推し', catch:'グループ全体をじっくり見守る。', color:'lavender',
+    desc:'グループ全員をじっくり応援する箱推し勢。発信は控えめだけど、参戦は計画的にきっちりこなす、縁の下の力持ちのようなタイプ。',
+    compat:'SOED（深夜の実況者）' },
+  LMQD:{ name:'気まぐれ現場勢', catch:'気の向くまま、現場に飛び込む。', color:'lavender',
+    desc:'箱推しで現場好きだけど発信は少なめ。計画よりもその時の気分を優先し、気の向くまま現場に飛び込む自由なスタイルが持ち味。',
+    compat:'SOEP（配信の伝道師）' },
+  SOEP:{ name:'配信の伝道師', catch:'画面越しでも愛の伝え方は本気。', color:'magenta',
+    desc:'単推しへの愛を配信やSNSで熱く語る、おうち発信派。スケジュール管理もしっかりしていて、配信や特典予定を計画的にこなす堅実さも持つ。',
+    compat:'LMQD（気まぐれ現場勢）' },
+  SOED:{ name:'深夜の実況者', catch:'配信が始まった瞬間、指が動き出す。', color:'gold',
+    desc:'単推しの配信に合わせて即座にSNS実況する発信派。気になったグッズは思い立ったらすぐポチる、瞬発力のあるおうち推し活スタイル。',
+    compat:'LMQP（縁の下の箱推し）' },
+  SOQP:{ name:'静かな守護者', catch:'家から静かに、でも誰より一途に。', color:'lavender',
+    desc:'単推しを家で静かに見守るタイプ。発信は控えめだけど、グッズや配信の予定はきっちり管理している堅実な守護者タイプ。',
+    compat:'LMED（現場の花火）' },
+  SOQD:{ name:'心の中の伝道師', catch:'言葉にしないだけで、愛は本物。', color:'lavender',
+    desc:'単推しを静かに応援するタイプ。気分でグッズを買ったり配信を見返したりと、衝動的な行動が多いけれど、想いの深さは誰にも負けない。',
+    compat:'LMEP（祭りの仕切り役）' },
+  SMEP:{ name:'箱推しの広報担当', catch:'メンバー全員の魅力を発信する。', color:'magenta',
+    desc:'グループ全員を家から応援する箱推し勢。SNSでメンバーそれぞれの魅力を発信し、配信・グッズ予定の管理も得意な「箱推しの広報担当」タイプ。',
+    compat:'LOQD（一途な放浪者）' },
+  SMED:{ name:'テンション爆上げ勢', catch:'気になったらすぐ動く、SNSも即実況。', color:'gold',
+    desc:'箱推しを家で応援しながら勢いよく実況ツイートするタイプ。計画よりも気になった瞬間の行動力が武器で、その熱量がまわりにも伝わっていく。',
+    compat:'LOQP（静かなる忠犬）' },
+  SMQP:{ name:'静かな箱推し', catch:'画面の前で、全員をそっと応援。', color:'lavender',
+    desc:'グループ全体を家で見守る箱推し勢。発信は控えめだけど、配信やグッズの予定はしっかり計画して楽しむタイプ。',
+    compat:'LOED（即決アタッカー）' },
+  SMQD:{ name:'マイペース隊長', catch:'自分のペースが一番の推し活。', color:'lavender',
+    desc:'箱推しを自分のペースで応援するタイプ。発信は少なめで、気分次第で行動する自由さが持ち味。無理せず長く推せる、マイペースな隊長タイプ。',
+    compat:'LOEP（現場伝道師）' },
+};
+
+/* ================= STATE ================= */
+let current = 0;
+let answers = []; // {axis, letter}
+
+function $(id){ return document.getElementById(id); }
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $(id).classList.add('active');
+  window.scrollTo({top:0, behavior:'instant'});
+}
+
+function startQuiz(){
+  current = 0;
+  answers = [];
+  showScreen('screen-quiz');
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const q = QUESTIONS[current];
+  const axis = AXES[q.axis];
+
+  $('progressText').textContent = 'Q' + (current+1) + ' / ' + QUESTIONS.length;
+  $('axisText').textContent = axis.name;
+  $('axisTag').textContent = axis.name + '（' + axis.A.label + ' / ' + axis.B.label + '）';
+  $('qText').textContent = q.text;
+  $('progressFill').style.width = Math.round((current / QUESTIONS.length) * 100) + '%';
+
+  const wrap = $('optionsWrap');
+  wrap.innerHTML = '';
+
+  [['a', q.a, axis.A], ['b', q.b, axis.B]].forEach(([key, text, side])=>{
+    const div = document.createElement('div');
+    div.className = 'option';
+    div.innerHTML = '<span class="letter">' + side.letter + '</span>' + text;
+    div.onclick = () => selectAnswer(q.axis, side.letter);
+    wrap.appendChild(div);
+  });
+
+  $('backLink').style.visibility = current === 0 ? 'hidden' : 'visible';
+}
+
+function selectAnswer(axisIndex, letter){
+  answers[current] = { axis:axisIndex, letter:letter };
+  current++;
+  if(current >= QUESTIONS.length){
+    showResult();
+  } else {
+    renderQuestion();
+  }
+}
+
+function goBack(){
+  if(current === 0) return;
+  current--;
+  renderQuestion();
+}
+
+function restartQuiz(){
+  startQuiz();
+}
+
+function showResult(){
+  // tally per axis
+  const tally = AXES.map(()=>({A:0,B:0}));
+  answers.forEach(ans=>{
+    const axis = AXES[ans.axis];
+    if(ans.letter === axis.A.letter) tally[ans.axis].A++;
+    else tally[ans.axis].B++;
+  });
+
+  let code = '';
+  AXES.forEach((axis, i)=>{
+    const t = tally[i];
+    code += (t.A >= t.B) ? axis.A.letter : axis.B.letter;
+  });
+
+  const type = TYPES[code];
+
+  $('ticketCode').textContent = code;
+  $('ticketName').textContent = type.name;
+  $('ticketCatch').textContent = type.catch;
+  $('ticketDesc').textContent = type.desc;
+  $('compatBox').innerHTML = '好相性タイプ：<b>' + type.compat + '</b>';
+
+  const d = new Date();
+  $('ticketDate').textContent = 'DATE ' + d.getFullYear() + '.' + String(d.getMonth()+1).padStart(2,'0') + '.' + String(d.getDate()).padStart(2,'0');
+
+  const metersWrap = $('meters');
+  metersWrap.innerHTML = '';
+  AXES.forEach((axis, i)=>{
+    const t = tally[i];
+    const total = t.A + t.B;
+    const pctA = total ? Math.round((t.A/total)*100) : 50;
+    const block = document.createElement('div');
+    block.className = 'meter-block';
+    block.innerHTML =
+      '<div class="meter-labels"><span>' + axis.A.label + ' ' + pctA + '%</span><span>' + (100-pctA) + '% ' + axis.B.label + '</span></div>' +
+      '<div class="meter-bar"><div class="meter-fill-a" style="width:' + pctA + '%"></div><div class="meter-fill-b" style="width:' + (100-pctA) + '%"></div></div>';
+    metersWrap.appendChild(block);
+  });
+
+  showScreen('screen-result');
+}
+</script>
+</body>
+</html>
