@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>PM適正診断</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0;
+    background: #f4f3ef;
+    color: #262622;
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  }
+  #wrap {
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100vh;
+    padding: 24px 20px 40px;
+  }
+  .card {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e5e3db;
+    padding: 24px 20px;
+  }
+  h1 { font-size: 19px; font-weight: 600; margin: 0 0 8px; text-align: center; }
+  .sub { font-size: 13px; color: #6f6e68; text-align: center; margin: 0 0 24px; line-height: 1.6; }
+  .primary-btn {
+    display: block; width: 100%;
+    background: #262622; color: #fff;
+    border: none; border-radius: 10px;
+    padding: 14px; font-size: 15px; font-weight: 600;
+    cursor: pointer;
+  }
+  .primary-btn:active { opacity: 0.85; }
+  .progress-track {
+    height: 5px; background: #eceae2; border-radius: 3px;
+    overflow: hidden; margin-bottom: 18px;
+  }
+  .progress-fill { height: 100%; background: #262622; transition: width .2s ease; }
+  .q-count { font-size: 12px; color: #9c9a92; margin: 0 0 10px; }
+  .q-text { font-size: 16px; line-height: 1.7; margin: 0 0 20px; min-height: 70px; }
+  .opt-btn {
+    display: block; width: 100%; text-align: left;
+    padding: 13px 16px; font-size: 14px;
+    background: #fbfaf7; border: 1px solid #e5e3db; border-radius: 10px;
+    margin-bottom: 8px; cursor: pointer; color: #262622;
+  }
+  .opt-btn:active { background: #eceae2; }
+  .back-btn {
+    display: block; margin: 14px auto 0; font-size: 12px;
+    color: #9c9a92; background: none; border: none; padding: 6px; cursor: pointer;
+  }
+  .result-label { font-size: 12px; color: #9c9a92; text-align: center; margin: 0 0 4px; }
+  .result-name { font-size: 23px; font-weight: 700; text-align: center; margin: 0 0 4px; }
+  .result-code { font-size: 13px; letter-spacing: 3px; text-align: center; color: #8a7a5c; margin: 0 0 18px; }
+  .result-desc { font-size: 14px; line-height: 1.8; color: #4a4943; margin: 0 0 24px; }
+  .axis-row { margin-bottom: 14px; }
+  .axis-labels { display: flex; justify-content: space-between; font-size: 12px; color: #6f6e68; margin-bottom: 5px; }
+  .axis-track { height: 6px; background: #eceae2; border-radius: 3px; overflow: hidden; }
+  .axis-fill { height: 100%; background: #8a7a5c; }
+  .retry-btn {
+    display: block; width: 100%; margin-top: 8px;
+    background: #fff; color: #262622; border: 1px solid #d8d6cc;
+    border-radius: 10px; padding: 12px; font-size: 14px; font-weight: 600; cursor: pointer;
+  }
+  .footer-note { font-size: 11px; color: #b3b1a8; text-align: center; margin-top: 18px; line-height: 1.6; }
+</style>
+</head>
+<body>
+<div id="wrap"><div class="card" id="app"></div></div>
+<script>
+const QUESTIONS = [
+{a:'PA',t:'プロジェクト開始前に、詳細なスケジュールを立てないと落ち着かない'},
+{a:'PA',t:'予定外の変更が入ると強いストレスを感じる'},
+{a:'PA',t:'タスクは事前にリストアップしてから着手したい'},
+{a:'PA',t:'「まず計画、そこから実行」が信条だ'},
+{a:'PA',t:'進捗はガントチャートなど可視化したツールで管理したい'},
+{a:'PA',t:'想定外のトラブルより計画通り進むことの方が重要だと思う'},
+{a:'PA',t:'会議の前にはアジェンダをきっちり用意する'},
+{a:'PA',t:'行き当たりばったりの進め方には不安を感じる'},
+{a:'LI',t:'判断に迷ったら、まずデータや数字を確認する'},
+{a:'LI',t:'感覚よりも根拠のある説明の方が説得力があると思う'},
+{a:'LI',t:'リスクは確率や影響度で数値化して評価したい'},
+{a:'LI',t:'会議では感情論より論理的な議論を重視する'},
+{a:'LI',t:'過去の実績データを分析してから意思決定したい'},
+{a:'LI',t:'直感的な「なんとなく」より明確な理由が欲しい'},
+{a:'LI',t:'KPIやメトリクスで進捗を管理するのが得意だ'},
+{a:'LI',t:'チームの空気より客観的な事実を優先することが多い'},
+{a:'DS',t:'チームを引っ張って前に進めるのが得意だ'},
+{a:'DS',t:'決断を下す場面では自分が率先して動きたい'},
+{a:'DS',t:'目標達成のためには多少強引にでも進めたい'},
+{a:'DS',t:'リーダーとして目立つ役割の方がやる気が出る'},
+{a:'DS',t:'メンバーの意見がまとまらない時は自分が方向性を示したい'},
+{a:'DS',t:'困難な状況でも自信を持って先頭に立てる'},
+{a:'DS',t:'スピード重視で意思決定したい'},
+{a:'DS',t:'「自分が引っ張る」という意識が強い'},
+{a:'OT',t:'ステークホルダーとの調整や交渉に力を発揮できる'},
+{a:'OT',t:'社内外との折衝は苦にならない'},
+{a:'OT',t:'会議やプレゼンで人前に立つのが好きだ'},
+{a:'OT',t:'関係者への説明や根回しを丁寧に行いたい'},
+{a:'OT',t:'多くの人と関わりながら進める仕事にやりがいを感じる'},
+{a:'OT',t:'顧客や上層部への報告・交渉は自分がやりたい'},
+{a:'OT',t:'ネットワークを広げることがプロジェクト成功の鍵だと思う'},
+{a:'OT',t:'一人で黙々と作業するより、人と関わる方が力を発揮できる'}
+];
+const TYPES = {
+PLDO:['戦略統率型プランナー','緻密な計画とデータに基づき、自らチームを牽引しながら対外調整も担う万能型。大規模プロジェクトの司令塔役に強い。'],
+PLDT:['精密実行型リーダー','計画とデータを武器に、現場を率いて着実にタスクをやり切るタイプ。品質重視のプロジェクトに向く。'],
+PLSO:['調整型プロジェクトビルダー','計画性とロジックを持ちながら、チームを支え関係者との調整を得意とする縁の下の要。'],
+PLST:['堅実サポート型アナリスト','計画とデータを軸に、静かにチームを支える実務派。地道な積み上げが必要な仕事で真価を発揮する。'],
+PIDO:['情熱ビジョナリーリーダー','綿密な計画と直感的な発想を併せ持ち、周囲を巻き込みながら前進する推進力の塊。'],
+PIDT:['職人肌の完遂請負人','計画性と直感を武器に、自分のペースで確実にやり切る職人型。専門性の高いタスクに強い。'],
+PISO:['共感型オーガナイザー','計画を大切にしつつ、メンバーの気持ちに寄り添いながら人をまとめるタイプ。'],
+PIST:['縁の下の計画職人','綿密な計画と直感を活かし、目立たないところでチームを支える安定感のあるタイプ。'],
+ALDO:['臨機応変な交渉家リーダー','状況に合わせて柔軟に対応しつつ、データを根拠に自ら先頭に立って交渉・推進する。'],
+ALDT:['スピード解決請負人','変化に強く、データを頼りに素早く現場を動かす実行力タイプ。トラブル対応に強い。'],
+ALSO:['柔軟な調整役アナリスト','臨機応変さとロジックを併せ持ち、周囲との調整でチームを支える潤滑油的存在。'],
+ALST:['冷静沈着なトラブルシューター','変化への耐性とデータ分析力で、静かに問題を解決していく実務派。'],
+AIDO:['カリスマ突破型リーダー','状況変化を楽しみながら直感で決断し、人を巻き込んで突き進む推進力の高いタイプ。'],
+AIDT:['即断即決の現場指揮官','柔軟さと直感を武器に、現場で素早く判断し自らチームを動かすタイプ。'],
+AISO:['人懐っこいムードメーカー','柔軟な対応力と共感力で、チームや関係者との関係づくりが得意な潤滑油タイプ。'],
+AIST:['縁の下の柔軟サポーター','変化に強く直感的でありながら、控えめにチームを支える縁の下の力持ち。']
+};
+const AXES=[['PA','計画重視','適応対応'],['LI','データ・ロジック','直感・共感'],['DS','牽引','支援'],['OT','対外調整','実務集中']];
+let idx=0, answers=new Array(QUESTIONS.length).fill(null), screen='start';
+
+function render(){
+  const app=document.getElementById('app');
+  if(screen==='start'){
+    app.innerHTML=`
+      <h1>PM適正診断</h1>
+      <p class="sub">32の質問に答えて、あなたのプロジェクトマネジメントタイプを診断します。<br>所要時間 約5分</p>
+      <button class="primary-btn" id="startBtn">診断を始める</button>
+      <p class="footer-note">※本診断は学術的根拠に基づくものではなく、自己理解のための簡易的なエンタメコンテンツです。</p>
+    `;
+    document.getElementById('startBtn').onclick=()=>{screen='q';render();};
+    return;
+  }
+  if(screen==='q'){
+    const q=QUESTIONS[idx];
+    const pct=Math.round((idx/QUESTIONS.length)*100);
+    const labels=['そう思わない','ややそう思わない','どちらでもない','ややそう思う','そう思う'];
+    app.innerHTML=`
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <p class="q-count">質問 ${idx+1} / ${QUESTIONS.length}</p>
+      <p class="q-text">${q.t}</p>
+      <div id="opts">
+        ${labels.map((l,i)=>`<button class="opt-btn" data-v="${i+1}">${l}</button>`).join('')}
+      </div>
+      ${idx>0?'<button class="back-btn" id="backBtn">← 前の質問に戻る</button>':''}
+    `;
+    app.querySelectorAll('.opt-btn').forEach(b=>{
+      b.onclick=()=>{
+        answers[idx]=parseInt(b.dataset.v);
+        if(idx<QUESTIONS.length-1){idx++;}else{screen='result';}
+        render();
+        window.scrollTo(0,0);
+      };
+    });
+    const backBtn=document.getElementById('backBtn');
+    if(backBtn)backBtn.onclick=()=>{idx--;render();};
+    return;
+  }
+  if(screen==='result'){
+    const scores={PA:0,LI:0,DS:0,OT:0};
+    QUESTIONS.forEach((q,i)=>{scores[q.a]+=answers[i];});
+    let code='';
+    AXES.forEach(([key])=>{
+      code += scores[key]>=24 ? key[0] : key[1];
+    });
+    const type=TYPES[code];
+    app.innerHTML=`
+      <p class="result-label">あなたのタイプ</p>
+      <p class="result-name">${type[0]}</p>
+      <p class="result-code">${code}</p>
+      <p class="result-desc">${type[1]}</p>
+      <div id="axes">
+        ${AXES.map(([key,p1,p2])=>{
+          const s=scores[key];
+          const pct=Math.round(((s-8)/32)*100);
+          return `<div class="axis-row">
+            <div class="axis-labels"><span>${p1}</span><span>${p2}</span></div>
+            <div class="axis-track"><div class="axis-fill" style="width:${pct}%"></div></div>
+          </div>`;
+        }).join('')}
+      </div>
+      <button class="retry-btn" id="retryBtn">もう一度診断する</button>
+      <p class="footer-note">※本診断は学術的根拠に基づくものではなく、自己理解のための簡易的なエンタメコンテンツです。</p>
+    `;
+    document.getElementById('retryBtn').onclick=()=>{
+      idx=0; answers=new Array(QUESTIONS.length).fill(null); screen='start'; render();
+      window.scrollTo(0,0);
+    };
+    return;
+  }
+}
+render();
+</script>
+</body>
+</html>
