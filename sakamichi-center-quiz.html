@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>坂道センター当てクイズ</title>
+<style>
+  :root{
+    --sakura:#ff6f91; --sakura-d:#e8547a;
+    --hinata:#4fc3ea; --hinata-d:#2ba9d6;
+    --bg:#1a1a24; --card:#24243a; --card2:#2e2e48;
+    --text:#f2f0ff; --sub:#a9a6c4; --good:#4ade80; --bad:#f87171;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  body{
+    margin:0; font-family:"Hiragino Sans","Noto Sans JP",sans-serif;
+    background:linear-gradient(160deg,#1a1a24,#241a2e 60%,#1a1a24);
+    color:var(--text); min-height:100vh; padding:16px;
+  }
+  .wrap{max-width:480px; margin:0 auto;}
+  h1{
+    font-size:20px; text-align:center; margin:8px 0 4px;
+    background:linear-gradient(90deg,var(--sakura),var(--hinata));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    font-weight:800;
+  }
+  .sub{text-align:center; color:var(--sub); font-size:12px; margin-bottom:16px;}
+
+  .panel{background:var(--card); border-radius:16px; padding:16px; margin-bottom:14px; box-shadow:0 4px 16px rgba(0,0,0,.25);}
+  .panel h2{font-size:13px; color:var(--sub); margin:0 0 10px; font-weight:600; letter-spacing:.02em;}
+  .chip-row{display:flex; flex-wrap:wrap; gap:8px;}
+  .chip{
+    padding:8px 14px; border-radius:999px; background:var(--card2); color:var(--sub);
+    font-size:13px; border:1px solid transparent; cursor:pointer; user-select:none; transition:.15s;
+  }
+  .chip.active{color:#fff; border-color:transparent; font-weight:700;}
+  .chip.active.sakura{background:var(--sakura);}
+  .chip.active.hinata{background:var(--hinata); color:#0a2e3d;}
+  .chip.active.neutral{background:#7c6bff;}
+
+  .startBtn{
+    width:100%; padding:16px; border:none; border-radius:14px; font-size:16px; font-weight:800;
+    background:linear-gradient(90deg,var(--sakura),var(--hinata)); color:#fff; margin-top:6px; cursor:pointer;
+    box-shadow:0 6px 18px rgba(255,111,145,.25);
+  }
+  .startBtn:disabled{opacity:.4;}
+
+  .hidden{display:none;}
+
+  .quizHead{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; font-size:13px; color:var(--sub);}
+  .progressBar{height:6px; border-radius:3px; background:var(--card2); overflow:hidden; margin-bottom:16px;}
+  .progressFill{height:100%; background:linear-gradient(90deg,var(--sakura),var(--hinata)); transition:.3s;}
+
+  .qCard{background:var(--card); border-radius:18px; padding:20px; box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  .qType{display:inline-block; font-size:11px; padding:3px 10px; border-radius:999px; margin-bottom:10px; font-weight:700;}
+  .qType.sakura{background:rgba(255,111,145,.18); color:var(--sakura);}
+  .qType.hinata{background:rgba(79,195,234,.18); color:var(--hinata);}
+  .qMeta{font-size:11px; color:var(--sub); margin-bottom:4px;}
+  .qTitle{font-size:18px; font-weight:800; line-height:1.4; margin-bottom:18px;}
+
+  .choices{display:flex; flex-direction:column; gap:10px;}
+  .choiceBtn{
+    padding:14px; border-radius:12px; border:1.5px solid #3a3a56; background:var(--card2);
+    color:var(--text); font-size:15px; text-align:left; cursor:pointer; transition:.15s;
+  }
+  .choiceBtn:active{transform:scale(.98);}
+  .choiceBtn.correct{border-color:var(--good); background:rgba(74,222,128,.15); color:var(--good); font-weight:700;}
+  .choiceBtn.wrong{border-color:var(--bad); background:rgba(248,113,113,.15); color:var(--bad); font-weight:700;}
+  .choiceBtn.disabledLook{opacity:.5;}
+
+  .inputRow{display:flex; gap:8px; margin-top:4px;}
+  .inputRow input{
+    flex:1; padding:14px; border-radius:12px; border:1.5px solid #3a3a56; background:var(--card2);
+    color:var(--text); font-size:16px;
+  }
+  .inputRow input:focus{outline:none; border-color:var(--sakura);}
+  .submitBtn{padding:14px 18px; border:none; border-radius:12px; background:var(--sakura); color:#fff; font-weight:700; font-size:15px;}
+
+  .feedback{margin-top:14px; padding:12px 14px; border-radius:12px; font-size:14px; line-height:1.5;}
+  .feedback.good{background:rgba(74,222,128,.12); color:var(--good);}
+  .feedback.bad{background:rgba(248,113,113,.12); color:var(--bad);}
+  .nextBtn{
+    width:100%; margin-top:14px; padding:14px; border:none; border-radius:12px;
+    background:var(--card2); color:var(--text); font-weight:700; font-size:15px; cursor:pointer;
+  }
+
+  .resultCard{background:var(--card); border-radius:18px; padding:28px 20px; text-align:center;}
+  .resultScore{font-size:44px; font-weight:900; background:linear-gradient(90deg,var(--sakura),var(--hinata)); -webkit-background-clip:text; background-clip:text; color:transparent; margin:10px 0;}
+  .resultMsg{color:var(--sub); font-size:14px; margin-bottom:20px;}
+  .retryBtn{width:100%; padding:15px; border:none; border-radius:12px; background:linear-gradient(90deg,var(--sakura),var(--hinata)); color:#fff; font-weight:800; font-size:15px; margin-bottom:10px;}
+  .backBtn{width:100%; padding:15px; border:none; border-radius:12px; background:var(--card2); color:var(--text); font-weight:700; font-size:15px;}
+
+  .note{font-size:11px; color:var(--sub); text-align:center; margin-top:18px; line-height:1.6;}
+
+  .reviewList{margin-top:18px; text-align:left; display:flex; flex-direction:column; gap:8px;}
+  .reviewItem{background:var(--card2); border-radius:12px; padding:10px 12px; border-left:4px solid transparent;}
+  .reviewItem.ok{border-left-color:var(--good);}
+  .reviewItem.ng{border-left-color:var(--bad);}
+  .reviewTop{display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700;}
+  .reviewIcon{font-size:14px;}
+  .reviewIcon.ok{color:var(--good);}
+  .reviewIcon.ng{color:var(--bad);}
+  .reviewTitle{flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .reviewSub{font-size:12px; color:var(--sub); margin-top:4px; line-height:1.5;}
+  .reviewSub b{color:var(--text); font-weight:700;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>坂道 センター当てクイズ</h1>
+  <div class="sub">日向坂46・櫻坂46(欅坂46) 表題曲/BACKS・ひなた坂曲/期別曲</div>
+
+  <!-- 設定画面 -->
+  <div id="setupScreen">
+    <div class="panel">
+      <h2>グループ</h2>
+      <div class="chip-row" id="groupChips">
+        <div class="chip active neutral" data-val="both">両方</div>
+        <div class="chip sakura" data-val="sakura">櫻坂46(欅坂含)</div>
+        <div class="chip hinata" data-val="hinata">日向坂46(けやき含)</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>曲のタイプ</h2>
+      <div class="chip-row" id="typeChips">
+        <div class="chip active neutral" data-val="title">表題曲</div>
+        <div class="chip active neutral" data-val="unit">ユニット曲</div>
+        <div class="chip active neutral" data-val="sub">BACKS曲/ひなた坂曲</div>
+        <div class="chip active neutral" data-val="gen">期別曲</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>出題形式</h2>
+      <div class="chip-row" id="formatChips">
+        <div class="chip active neutral" data-val="choice">4択クイズ</div>
+        <div class="chip neutral" data-val="input">名前を入力</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>問題数</h2>
+      <div class="chip-row" id="countChips">
+        <div class="chip neutral" data-val="10">10問</div>
+        <div class="chip active neutral" data-val="15">15問</div>
+        <div class="chip neutral" data-val="20">20問</div>
+      </div>
+    </div>
+
+    <button class="startBtn" id="startBtn">クイズスタート</button>
+    <div class="note">※センター/メンバー情報はファンサイトの集計をもとに作成しています。一部情報未公表の楽曲は出題対象外です。<br>ユニット曲は「参加メンバーの中から正しい1人を選ぶ/入力する」形式です。</div>
+  </div>
+
+  <!-- クイズ画面 -->
+  <div id="quizScreen" class="hidden">
+    <div class="quizHead">
+      <span id="qCounter">問題 1/15</span>
+      <button id="muteBtn" style="background:none;border:none;color:var(--sub);font-size:18px;cursor:pointer;padding:4px 8px;">🔊</button>
+      <span id="qScore">正解 0</span>
+    </div>
+    <div class="progressBar"><div class="progressFill" id="progressFill" style="width:0%"></div></div>
+
+    <div class="qCard">
+      <span class="qType" id="qTypeBadge">表題曲</span>
+      <div class="qMeta" id="qMeta"></div>
+      <div class="qTitle" id="qTitle"></div>
+
+      <div id="choicesArea" class="choices"></div>
+
+      <div id="inputArea" class="hidden">
+        <div class="inputRow">
+          <input type="text" id="answerInput" placeholder="メンバー名を入力(苗字だけでもOK)">
+          <button class="submitBtn" id="submitBtn">回答</button>
+        </div>
+      </div>
+
+      <div id="feedback" class="feedback hidden"></div>
+      <button id="nextBtn" class="nextBtn hidden">次の問題へ</button>
+    </div>
+  </div>
+
+  <!-- 結果画面 -->
+  <div id="resultScreen" class="hidden">
+    <div class="resultCard">
+      <div style="font-size:14px;color:var(--sub)">RESULT</div>
+      <div class="resultScore" id="resultScore">0 / 15</div>
+      <div class="resultMsg" id="resultMsg"></div>
+      <button class="retryBtn" id="retryBtn">もう一度挑戦</button>
+      <button class="backBtn" id="backBtn">設定に戻る</button>
+      <div class="reviewList" id="reviewList"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================= データ ================= */
+// group: 'sakura' | 'hinata'
+// type: 'title' | 'sub' | 'gen'
+const DB = [];
+
+function add(group, type, title, center, meta){
+  if(!center) return;
+  DB.push({group, type, title, center: center.split('/'), meta: meta||''});
+}
+// ユニット曲: membersは配列で全参加メンバーを渡す(誰でも正解扱い)
+function addUnit(group, title, members, meta){
+  DB.push({group, type:'unit', title, center: members, meta: meta||''});
+}
+
+/* ---- 櫻坂46(欅坂46含む) 表題曲 ---- */
+add('sakura','title','サイレントマジョリティー','平手友梨奈','欅坂46 1st (2016)');
+add('sakura','title','世界には愛しかない','平手友梨奈','欅坂46 2nd (2016)');
+add('sakura','title','二人セゾン','平手友梨奈','欅坂46 3rd (2016)');
+add('sakura','title','不協和音','平手友梨奈','欅坂46 4th (2017)');
+add('sakura','title','風に吹かれても','平手友梨奈','欅坂46 5th (2017)');
+add('sakura','title','ガラスを割れ!','平手友梨奈','欅坂46 6th (2018)');
+add('sakura','title','アンビバレント','平手友梨奈','欅坂46 7th (2018)');
+add('sakura','title','黒い羊','平手友梨奈','欅坂46 8th (2019)');
+add('sakura','title',"Nobody's fault",'森田ひかる','櫻坂46 1st (2020)');
+add('sakura','title','BAN','森田ひかる','櫻坂46 2nd (2021)');
+add('sakura','title','流れ弾','田村保乃','櫻坂46 3rd (2021)');
+add('sakura','title','五月雨よ','山﨑天','櫻坂46 4th (2022)');
+add('sakura','title','桜月','守屋麗奈','櫻坂46 5th (2023)');
+add('sakura','title','Start over!','藤吉夏鈴','櫻坂46 6th (2023)');
+add('sakura','title','承認欲求','森田ひかる','櫻坂46 7th (2023)');
+add('sakura','title','何歳の頃に戻りたいのか？','山﨑天','櫻坂46 8th (2024)');
+add('sakura','title','自業自得','山下瞳月','櫻坂46 9th (2024)');
+add('sakura','title','I want tomorrow to come','山下瞳月','櫻坂46 10th (2024)');
+add('sakura','title','UDAGAWA GENERATION','森田ひかる','櫻坂46 11th (2025)');
+add('sakura','title','Make or Break','的野美青','櫻坂46 12th (2025)');
+add('sakura','title','Unhappy birthday構文','村井優','櫻坂46 13th (2025)');
+add('sakura','title','The growing up train','藤吉夏鈴','櫻坂46 14th (2026)');
+add('sakura','title',"Lonesome rabbit / What's \"KAZOKU\"?",'森田ひかる','櫻坂46 15th (2026)');
+add('sakura','title','摩擦係数','森田ひかる/山﨑天','アルバムリード曲(2022)');
+add('sakura','title','Addiction','山﨑天/藤吉夏鈴','アルバムリード曲(2025)');
+
+/* ---- 櫻坂46 BACKS曲 ---- */
+add('sakura','sub','ソニア','小池美波','「流れ弾」BACKS曲');
+add('sakura','sub','I\'m in','土生瑞穂','「五月雨よ」BACKS曲');
+add('sakura','sub','無念','松田里奈','「桜月」BACKS曲');
+add('sakura','sub','確信的クロワッサン','井上梨名','「承認欲求」BACKS曲');
+add('sakura','sub','油を注せ！','武元唯衣','「何歳の頃に戻りたいのか？」BACKS曲');
+add('sakura','sub','愛し合いなさい','石森璃花','「自業自得」BACKS曲');
+add('sakura','sub','僕は僕を好きになれない','村井優','「I want tomorrow to come」BACKS曲');
+add('sakura','sub','19歳のガレット','村井優','「I want tomorrow to come」BACKS曲');
+add('sakura','sub','Nothing special','中嶋優月','「UDAGAWA GENERATION」BACKS曲');
+add('sakura','sub','ULTRAVIOLET','中嶋優月','「UDAGAWA GENERATION」BACKS曲');
+add('sakura','sub','港区パセリ','石森璃花','「Make or Break」BACKS曲');
+add('sakura','sub','君のことを想いながら','石森璃花','「Make or Break」BACKS曲');
+add('sakura','sub','木枯らしは泣かない','谷口愛季','「Unhappy birthday構文」BACKS曲');
+add('sakura','sub','I will be','谷口愛季','「Unhappy birthday構文」BACKS曲');
+add('sakura','sub','ドライフルーツ','村山美羽','「The growing up train」BACKS曲');
+add('sakura','sub','コインランドリー','遠藤理子','「Lonesome rabbit」BACKS曲');
+add('sakura','sub','狼たちよ','遠藤理子','「Lonesome rabbit」BACKS曲');
+
+/* ---- 櫻坂46 期別曲 ---- */
+add('sakura','gen','夏の近道','谷口愛季','3期生曲(「桜月」収録)');
+add('sakura','gen','静寂の暴力','山下瞳月','3期生曲(「Start over!」収録)');
+add('sakura','gen','風の音','小池美波','1期生曲(「Start over!」収録)');
+add('sakura','gen','コンビナート','増本綺良','2期生曲(「Start over!」収録)');
+add('sakura','gen','Anthem time','中嶋優月','3期生曲(「Start over!」収録)');
+add('sakura','gen','マモリビト','小島凪紗','3期生曲(「承認欲求」収録)');
+add('sakura','gen','隙間風よ','小林由依','1・2期生曲(「承認欲求」収録)');
+add('sakura','gen','何度LOVE SONGの歌詞を読み返しただろう','村山美羽','3期生曲(「何歳の頃に戻りたいのか？」収録)');
+add('sakura','gen','引きこもる時間はない','向井純葉','3期生曲(「自業自得」収録)');
+add('sakura','gen','本質的なこと','遠藤理子','3期生曲(「I want tomorrow to come」収録)');
+add('sakura','gen','Nightmare症候群','的野美青','3期生曲(「UDAGAWA GENERATION」収録)');
+add('sakura','gen','死んだふり','山田桃実','4期生曲(「Make or Break」収録)');
+add('sakura','gen','恋愛無双','小田倉麗奈','3期生曲(「Make or Break」収録)');
+add('sakura','gen','Alter ego','山川宇衣','4期生曲(「Unhappy birthday構文」収録)');
+add('sakura','gen','青空が見えるまで','大園玲','2期生曲(「Unhappy birthday構文」収録)');
+add('sakura','gen','光源','浅井恋乃未','4期生曲(「The growing up train」収録)');
+add('sakura','gen','We got your back','佐藤愛桜','4期生曲(「Lonesome rabbit」収録)');
+
+/* ---- 櫻坂46 ユニット曲 ---- */
+addUnit('sakura','On my way',['井上梨名','松田里奈'],'2人ユニット曲(2期生)');
+addUnit('sakura',"One-way stairs",['藤吉夏鈴','森田ひかる'],'2人ユニット曲(2期生)');
+addUnit('sakura','縁起担ぎ',['松田里奈','石森璃花'],'2人ユニット曲(2・3期生)');
+addUnit('sakura','ジャマイカビール',['小林由依','遠藤光莉','藤吉夏鈴'],'3人ユニット曲(1・2期生)');
+addUnit('sakura','ずっと春だったらなあ',['井上梨名','大園玲','田村保乃'],'3人ユニット曲(2期生)');
+addUnit('sakura','真夏に何か起きるのかしら',['山﨑天','小島凪紗','向井純葉'],'3人ユニット曲(2・3期生)');
+addUnit('sakura','心の影絵',['森田ひかる','谷口愛季','山下瞳月'],'3人ユニット曲(2・3期生)');
+addUnit('sakura','恋は向いてない',['藤吉夏鈴','中嶋優月','村井優'],'3人ユニット曲(2・3期生)');
+addUnit('sakura','行かないで',['小池美波','遠藤理子','小島凪紗'],'3人ユニット曲(1・3期生)');
+addUnit('sakura','くらげらしく',['守屋麗奈','向井純葉','中川智尋'],'3人ユニット曲(2・3・4期生)');
+addUnit('sakura','Sunny side up',['藤吉夏鈴','的野美青','村山美羽'],'3人ユニット曲(2・3期生)');
+addUnit('sakura','制服の人魚',['武元唯衣','森田ひかる','守屋麗奈','山﨑天'],'4人ユニット曲(2期生)');
+addUnit('sakura','イザベルについて',['井上梨名','大沼晶保','武元唯衣','増本綺良'],'4人ユニット曲(2期生)');
+addUnit('sakura','標識',['遠藤理子','小田倉麗奈','中嶋優月','向井純葉'],'4人ユニット曲(3期生)');
+addUnit('sakura','今さらSuddenly',['田村保乃','守屋麗奈','石森璃花','中嶋優月'],'4人ユニット曲(2・3期生)');
+addUnit('sakura',"Don't cut in line!",['谷口愛季','的野美青','村井優','村山美羽','山下瞳月'],'5人ユニット曲(3期生)');
+addUnit('sakura','真夏の大統領',['大園玲','守屋麗奈','向井純葉','村井優','村山美羽'],'5人ユニット曲(2・3期生)');
+addUnit('sakura','断絶',['小池美波','小林由依','田村保乃','藤吉夏鈴','森田ひかる','守屋麗奈','山﨑天'],'7人ユニット曲(1・2期生)');
+addUnit('sakura','僕たちのLa vie en rose',['小池美波','小林由依','土生瑞穂','武元唯衣','田村保乃','藤吉夏鈴','森田ひかる','山﨑天'],'8人ユニット曲(1・2期生)');
+
+/* ---- 日向坂46 ユニット曲 ---- */
+addUnit('hinata','沈黙した恋人よ',['潮紗理菜','加藤史帆','齊藤京子','佐々木久美','高本彩花'],'ユニット「りまちゃんちっく」');
+addUnit('hinata','ハロウィンのカボチャが割れた',['潮紗理菜','加藤史帆','齊藤京子','佐々木久美','高本彩花'],'ユニット「りまちゃんちっく」');
+addUnit('hinata','ママのドレス',['潮紗理菜','加藤史帆','齊藤京子','佐々木久美','高本彩花'],'ユニット「りまちゃんちっく」');
+addUnit('hinata','Footsteps',['佐々木久美','佐々木美玲','加藤史帆','高本彩花','小坂菜緒'],'ユニット「浅草姉妹」');
+addUnit('hinata','やさしさが邪魔をする',['加藤史帆','渡邉美穂','上村ひなの'],'ユニット「リスペクトスリー」');
+addUnit('hinata','まさか 偶然…',['富田鈴花','松田好花'],'ユニット「花ちゃんズ」');
+addUnit('hinata','ナゼー',['東村芽依','河田陽菜','松田好花'],'ユニット「FACTORY」');
+addUnit('hinata','どうして雨だと言ったんだろう?',['加藤史帆','齊藤京子','佐々木美玲'],'ユニット「きずなーず」');
+addUnit('hinata','夢は何歳まで?',['高本彩花','東村芽依'],'ユニット「あゃめぃちゃん」');
+addUnit('hinata','酸っぱい自己嫌悪',['佐々木美玲','河田陽菜','濱岸ひより','山口陽世'],'ユニット「みーぱんファミリー」');
+addUnit('hinata','あくびLetter',['金村美玖','丹生明里','渡邉美穂'],'ユニット「カラーチャート」');
+addUnit('hinata','もうこんなに好きになれない',['金村美玖','小坂菜緒','濱岸ひより'],'ユニット「2002年組」');
+addUnit('hinata','HELL ROSE',['東村芽依','河田陽菜','濱岸ひより'],'ユニット「チョコラショコラ」');
+addUnit('hinata','レントゲン眼鏡',['富田鈴花','松田好花'],'ユニット「まりりん&るびー」');
+
+/* ---- 日向坂46(けやき坂46含む) 表題曲 ---- */
+add('hinata','title','キュン','小坂菜緒','日向坂46 1st (2019)');
+add('hinata','title','ドレミソラシド','小坂菜緒','日向坂46 2nd (2019)');
+add('hinata','title','こんなに好きになっちゃっていいの？','小坂菜緒','日向坂46 3rd (2019)');
+add('hinata','title','ソンナコトナイヨ','小坂菜緒','日向坂46 4th (2020)');
+add('hinata','title','君しか勝たん','加藤史帆','日向坂46 5th (2021)');
+add('hinata','title','ってか','金村美玖','日向坂46 6th (2021)');
+add('hinata','title','僕なんか','小坂菜緒','日向坂46 7th (2022)');
+add('hinata','title','月と星が踊るMidnight','齊藤京子','日向坂46 8th (2022)');
+add('hinata','title','One choice','丹生明里','日向坂46 9th (2023)');
+add('hinata','title','Am I ready?','上村ひなの','日向坂46 10th (2023)');
+add('hinata','title','君はハニーデュー','正源司陽子','日向坂46 11th (2024)');
+add('hinata','title','絶対的第六感','正源司陽子/藤嶌果歩','日向坂46 12th (2024)');
+add('hinata','title','卒業写真だけが知ってる','小坂菜緒','日向坂46 13th (2025)');
+add('hinata','title','Love yourself!','小坂菜緒','日向坂46 14th (2025)');
+add('hinata','title','お願いバッハ！','小坂菜緒/金村美玖','日向坂46 15th (2025)');
+add('hinata','title','クリフハンガー','大野愛実','日向坂46 16th (2026)');
+add('hinata','title','Kind of love','藤嶌果歩','日向坂46 17th (2026)');
+add('hinata','title','アザトカワイイ','佐々木美玲','アルバム「ひなたざか」リード曲(2020)');
+add('hinata','title','君は0から1になれ','佐々木久美','アルバム「脈打つ感情」リード曲(2023)');
+add('hinata','title','期待していない自分','佐々木美玲','けやき坂46 アルバム「走り出す瞬間」リード曲(2018)');
+
+/* ---- 日向坂46 ひなた坂曲/ひらがな曲 ---- */
+add('hinata','sub','錆つかない剣を持て！','髙橋未来虹','「君はハニーデュー」ひなた坂曲');
+add('hinata','sub','君を覚えてない','宮地すみれ','「絶対的第六感」ひなた坂曲');
+add('hinata','sub','雪は降る 心の世界に','宮地すみれ','「絶対的第六感」ひなた坂曲');
+add('hinata','sub','SUZUKA','富田鈴花','「卒業写真だけが知ってる」ひなた坂曲');
+add('hinata','sub','あの娘にグイグイ','富田鈴花','「卒業写真だけが知ってる」ひなた坂曲');
+add('hinata','sub','君と生きる','上村ひなの','「クリフハンガー」ひなた坂曲');
+add('hinata','sub','Empty','平岡海月','「Kind of love」ひなた坂曲');
+
+/* ---- 日向坂46 期別曲 ---- */
+add('hinata','gen','耳に落ちる涙','加藤史帆','期別曲(「キュン」収録)');
+add('hinata','gen','沈黙が愛なら','小坂菜緒','期別曲(「キュン」収録)');
+add('hinata','gen','My god','佐々木久美','期別曲(「ドレミソラシド」収録)');
+add('hinata','gen','好きということは…','佐々木美玲','期別曲(「ソンナコトナイヨ」収録)');
+add('hinata','gen','君のため何ができるだろう','丹生明里','期別曲(「ソンナコトナイヨ」収録)');
+add('hinata','gen','どうする？どうする？どうする？','東村芽依','期別曲(「君しか勝たん」収録)');
+add('hinata','gen','世界にはThank you!が溢れている','小坂菜緒','期別曲(「君しか勝たん」収録)');
+add('hinata','gen','ブルーベリー＆ラズベリー','清水理央','期別曲(「月と星が踊るMidnight」収録)');
+add('hinata','gen','愛はこっちのものだ','高本彩花','期別曲(「One choice」収録)');
+add('hinata','gen',"You're in my way",'河田陽菜','期別曲(「One choice」収録)');
+add('hinata','gen','パクチー ピーマン グリーンピース','山口陽世','期別曲(「One choice」収録)');
+add('hinata','gen','シーラカンス','正源司陽子','期別曲(「One choice」収録)');
+add('hinata','gen','見たことない魔物','藤嶌果歩','期別曲(「Am I ready?」収録)');
+add('hinata','gen','骨組みだらけの夏休み','高瀬愛奈','期別曲(「Am I ready?」収録)');
+add('hinata','gen','君は逆立ちできるか？','富田鈴花','期別曲(「Am I ready?」収録)');
+add('hinata','gen','愛のひきこもり','髙橋未来虹','期別曲(「Am I ready?」収録)');
+add('hinata','gen','雨が降ったって','小西夏菜実','期別曲(「君はハニーデュー」収録)');
+add('hinata','gen','夕陽Dance','渡辺莉奈','期別曲(「絶対的第六感」収録)');
+add('hinata','gen','ジャーマンアイリス','大野愛実','期別曲(「Love yourself!」収録)');
+add('hinata','gen','空飛ぶ車','松尾桜','期別曲(「お願いバッハ！」収録)');
+add('hinata','gen','好きになるクレッシェンド','片山紗希','期別曲(「クリフハンガー」収録)');
+add('hinata','gen',"Surf's up girl",'竹内希来里','期別曲(「クリフハンガー」収録)');
+add('hinata','gen','円周率','佐藤優羽','期別曲(「Kind of love」収録)');
+
+/* 全メンバー名(4択の誤答生成用) */
+const ALL_MEMBERS = {
+  sakura: ['森田ひかる','山﨑天','山下瞳月','藤吉夏鈴','田村保乃','守屋麗奈','的野美青','村井優','小池美波','土生瑞穂','松田里奈','井上梨名','武元唯衣','石森璃花','中嶋優月','谷口愛季','村山美羽','遠藤理子','増本綺良','小島凪紗','小林由依','向井純葉','山田桃実','小田倉麗奈','山川宇衣','大園玲','浅井恋乃未','佐藤愛桜','平手友梨奈','幸阪茉里乃','関有美子','大沼晶保','遠藤光莉','上村莉菜','中川智尋'],
+  hinata: ['小坂菜緒','加藤史帆','金村美玖','齊藤京子','丹生明里','上村ひなの','正源司陽子','藤嶌果歩','大野愛実','佐々木美玲','佐々木久美','髙橋未来虹','宮地すみれ','富田鈴花','平岡海月','東村芽依','清水理央','高本彩花','河田陽菜','山口陽世','高瀬愛奈','小西夏菜実','渡辺莉奈','松尾桜','片山紗希','竹内希来里','佐藤優羽','森本茉莉','山下葉留花','宮田愛萌','石塚瑶季','潮紗理菜','松田好花','渡邉美穂','濱岸ひより']
+};
+
+/* ================= 効果音(Web Audio API) ================= */
+let audioCtx = null;
+let soundOn = true;
+document.getElementById('muteBtn').addEventListener('click', ()=>{
+  soundOn = !soundOn;
+  document.getElementById('muteBtn').textContent = soundOn ? '🔊' : '🔇';
+});
+function getCtx(){
+  if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if(audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+function playTone(freq, startTime, duration, type='sine', peakGain=0.25){
+  const ctx = getCtx();
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, startTime);
+  gain.gain.setValueAtTime(0, startTime);
+  gain.gain.linearRampToValueAtTime(peakGain, startTime + 0.015);
+  gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+  osc.connect(gain).connect(ctx.destination);
+  osc.start(startTime);
+  osc.stop(startTime + duration + 0.02);
+}
+function playCorrectSound(){
+  if(!soundOn) return;
+  // 「ピンポン」: 高い音→少し低い音
+  const ctx = getCtx();
+  const now = ctx.currentTime;
+  playTone(1318.5, now, 0.28, 'sine', 0.28);       // ピン (E6)
+  playTone(1046.5, now + 0.16, 0.32, 'sine', 0.28); // ポン (C6)
+}
+function playWrongSound(){
+  if(!soundOn) return;
+  // 「ブッ」: 短く鋭い低音バズ
+  const ctx = getCtx();
+  const now = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(160, now);
+  osc.frequency.exponentialRampToValueAtTime(70, now + 0.4);
+  gain.gain.setValueAtTime(0, now);
+  gain.gain.linearRampToValueAtTime(0.6, now + 0.008);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.48);
+  osc.connect(gain).connect(ctx.destination);
+  osc.start(now);
+  osc.stop(now + 0.5);
+}
+
+/* ================= 状態管理 ================= */
+let state = {
+  group:'both', types:new Set(['title','unit','sub','gen']), format:'choice', count:15,
+  quiz:[], idx:0, score:0, answered:false, history:[]
+};
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+/* ---- チップ選択制御 ---- */
+document.getElementById('groupChips').addEventListener('click', e=>{
+  const chip = e.target.closest('.chip'); if(!chip) return;
+  [...document.getElementById('groupChips').children].forEach(c=>{
+    c.classList.remove('active','sakura','hinata','neutral');
+    c.classList.add(c.dataset.val==='sakura'?'sakura':c.dataset.val==='hinata'?'hinata':'neutral');
+  });
+  chip.classList.add('active');
+  state.group = chip.dataset.val;
+});
+document.getElementById('typeChips').addEventListener('click', e=>{
+  const chip = e.target.closest('.chip'); if(!chip) return;
+  chip.classList.toggle('active');
+  if(chip.classList.contains('active')) state.types.add(chip.dataset.val);
+  else state.types.delete(chip.dataset.val);
+});
+document.getElementById('formatChips').addEventListener('click', e=>{
+  const chip = e.target.closest('.chip'); if(!chip) return;
+  [...document.getElementById('formatChips').children].forEach(c=>c.classList.remove('active'));
+  chip.classList.add('active');
+  state.format = chip.dataset.val;
+});
+document.getElementById('countChips').addEventListener('click', e=>{
+  const chip = e.target.closest('.chip'); if(!chip) return;
+  [...document.getElementById('countChips').children].forEach(c=>c.classList.remove('active'));
+  chip.classList.add('active');
+  state.count = parseInt(chip.dataset.val);
+});
+
+/* ---- スタート ---- */
+document.getElementById('startBtn').addEventListener('click', ()=>{
+  getCtx();
+  let pool = DB.filter(q => (state.group==='both'||q.group===state.group) && state.types.has(q.type));
+  if(pool.length===0){ alert('条件に合う問題がありません。グループや曲タイプを選んでください。'); return; }
+  const n = Math.min(state.count, pool.length);
+  state.quiz = shuffle(pool).slice(0,n);
+  state.idx = 0; state.score = 0; state.history = [];
+  document.getElementById('setupScreen').classList.add('hidden');
+  document.getElementById('resultScreen').classList.add('hidden');
+  document.getElementById('quizScreen').classList.remove('hidden');
+  renderQuestion();
+});
+
+const typeLabel = {title:'表題曲', unit:'ユニット曲', sub:'サブユニット曲', gen:'期別曲'};
+
+function renderQuestion(){
+  state.answered = false;
+  const q = state.quiz[state.idx];
+  document.getElementById('qCounter').textContent = `問題 ${state.idx+1}/${state.quiz.length}`;
+  document.getElementById('qScore').textContent = `正解 ${state.score}`;
+  document.getElementById('progressFill').style.width = `${(state.idx/state.quiz.length)*100}%`;
+
+  const badge = document.getElementById('qTypeBadge');
+  const typeText = q.type==='title' ? '表題曲センター'
+    : q.type==='unit' ? 'ユニット曲メンバー'
+    : q.type==='sub' ? (q.group==='sakura'?'BACKS曲センター':'ひなた坂曲センター')
+    : '期別曲センター';
+  badge.textContent = (q.group==='sakura'?'櫻坂46 ':'日向坂46 ') + typeText;
+  badge.className = 'qType ' + q.group;
+  document.getElementById('qMeta').textContent = q.meta;
+  document.getElementById('qTitle').textContent = q.type==='unit'
+    ? `「${q.title}」に参加しているメンバーは誰？`
+    : `「${q.title}」のセンターは誰？`;
+
+  document.getElementById('feedback').classList.add('hidden');
+  document.getElementById('nextBtn').classList.add('hidden');
+
+  const choicesArea = document.getElementById('choicesArea');
+  const inputArea = document.getElementById('inputArea');
+  choicesArea.innerHTML = '';
+
+  if(state.format==='choice'){
+    choicesArea.classList.remove('hidden');
+    inputArea.classList.add('hidden');
+    const correct = q.center[Math.floor(Math.random()*q.center.length)];
+    const pool = ALL_MEMBERS[q.group].filter(m=>!q.center.includes(m));
+    const wrongs = shuffle(pool).slice(0,3);
+    const options = shuffle([correct, ...wrongs]);
+    options.forEach(opt=>{
+      const btn = document.createElement('button');
+      btn.className = 'choiceBtn';
+      btn.textContent = opt;
+      btn.addEventListener('click', ()=> checkChoice(opt, q, btn, choicesArea));
+      choicesArea.appendChild(btn);
+    });
+  } else {
+    choicesArea.classList.add('hidden');
+    inputArea.classList.remove('hidden');
+    document.getElementById('answerInput').value = '';
+    document.getElementById('answerInput').focus();
+  }
+}
+
+function checkChoice(selected, q, btnEl, area){
+  if(state.answered) return;
+  state.answered = true;
+  const isCorrect = q.center.includes(selected);
+  if(isCorrect) state.score++;
+  [...area.children].forEach(c=>{
+    c.classList.add('disabledLook');
+    if(q.center.includes(c.textContent)) c.classList.add('correct');
+    if(c===btnEl && !isCorrect) c.classList.add('wrong');
+  });
+  showFeedback(isCorrect, q, selected);
+}
+
+document.getElementById('submitBtn').addEventListener('click', submitInput);
+document.getElementById('answerInput').addEventListener('keydown', e=>{ if(e.key==='Enter') submitInput(); });
+
+function submitInput(){
+  if(state.answered) return;
+  const val = document.getElementById('answerInput').value.trim();
+  if(!val) return;
+  state.answered = true;
+  const q = state.quiz[state.idx];
+  const isCorrect = q.center.some(name => name.includes(val) || val.includes(name.slice(-2)) || name===val);
+  if(isCorrect) state.score++;
+  showFeedback(isCorrect, q, val);
+}
+
+function showFeedback(isCorrect, q, userAnswer){
+  if(isCorrect) playCorrectSound(); else playWrongSound();
+  const fb = document.getElementById('feedback');
+  fb.classList.remove('hidden','good','bad');
+  fb.classList.add(isCorrect?'good':'bad');
+  const label = q.type==='unit' ? '参加メンバーは' : '正解は';
+  fb.textContent = (isCorrect? '正解！ ':'不正解… ') + `${label}「${q.center.join('・')}」`;
+  document.getElementById('nextBtn').classList.remove('hidden');
+  state.history.push({
+    title: q.title, group: q.group, type: q.type,
+    isCorrect, userAnswer: userAnswer || '(未回答)', correctAnswer: q.center.join('・')
+  });
+}
+
+document.getElementById('nextBtn').addEventListener('click', ()=>{
+  state.idx++;
+  if(state.idx >= state.quiz.length){
+    document.getElementById('progressFill').style.width='100%';
+    showResult();
+  } else {
+    renderQuestion();
+  }
+});
+
+function showResult(){
+  document.getElementById('quizScreen').classList.add('hidden');
+  document.getElementById('resultScreen').classList.remove('hidden');
+  document.getElementById('resultScore').textContent = `${state.score} / ${state.quiz.length}`;
+  const rate = state.score/state.quiz.length;
+  let msg = '';
+  if(rate===1) msg = '全問正解！箱推し公認レベル！';
+  else if(rate>=0.8) msg = 'かなりの推しセンサー！';
+  else if(rate>=0.5) msg = 'まずまず！復習してもう一周しよう';
+  else msg = 'まだまだ伸びしろあり！何度でも挑戦しよう';
+  document.getElementById('resultMsg').textContent = msg;
+
+  const listEl = document.getElementById('reviewList');
+  listEl.innerHTML = state.history.map((h,i)=>{
+    const groupLabel = h.group==='sakura' ? '櫻坂46' : '日向坂46';
+    return `
+      <div class="reviewItem ${h.isCorrect?'ok':'ng'}">
+        <div class="reviewTop">
+          <span class="reviewIcon ${h.isCorrect?'ok':'ng'}">${h.isCorrect?'○':'×'}</span>
+          <span class="reviewTitle">Q${i+1}. ${h.title}</span>
+        </div>
+        <div class="reviewSub">
+          ${groupLabel}・${typeLabel[h.type]}${h.isCorrect ? '' : `　あなたの回答: <b>${h.userAnswer}</b>`}<br>
+          正解: <b>${h.correctAnswer}</b>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+document.getElementById('retryBtn').addEventListener('click', ()=>{
+  document.getElementById('resultScreen').classList.add('hidden');
+  document.getElementById('setupScreen').classList.remove('hidden');
+});
+document.getElementById('backBtn').addEventListener('click', ()=>{
+  document.getElementById('resultScreen').classList.add('hidden');
+  document.getElementById('setupScreen').classList.remove('hidden');
+});
+</script>
+</body>
+</html>
