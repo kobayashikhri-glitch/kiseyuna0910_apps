@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ひなたフェス2026 宮崎 旅チェックリスト</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;800&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap');
+
+:root{
+  --paper:#FBF3E3;
+  --paper-deep:#F4E9D2;
+  --ink:#1F2E3D;
+  --ink-soft:#4B5A68;
+  --ocean:#0E7490;
+  --ocean-deep:#0B4F5C;
+  --sun:#F0A63A;
+  --coral:#E8604C;
+  --line:#D8CBB0;
+  --green:#3C9A5F;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Zen Kaku Gothic New',sans-serif;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+.app{max-width:720px;margin:0 auto;padding:20px 16px 80px;}
+
+/* header */
+.hd{text-align:center;padding:20px 0 16px;}
+.hd .eyebrow{font-size:.72rem;letter-spacing:.3em;color:var(--ocean-deep);font-weight:700;}
+.hd h1{font-family:'Shippori Mincho',serif;font-weight:800;font-size:1.7rem;margin:8px 0 4px;}
+.hd .sub{font-size:.8rem;color:var(--ink-soft);}
+
+/* connection status */
+.conn-row{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:14px;font-size:.72rem;color:var(--ink-soft);}
+.conn-dot{width:8px;height:8px;border-radius:50%;background:var(--line);}
+.conn-dot.on{background:var(--green);box-shadow:0 0 0 3px rgba(60,154,95,.18);}
+.conn-dot.off{background:var(--coral);}
+
+/* tabs */
+.tabs{display:flex;gap:6px;background:var(--paper-deep);border-radius:100px;padding:4px;margin:6px 0 18px;}
+.tab{
+  flex:1;text-align:center;padding:9px 6px;border-radius:100px;
+  font-size:.82rem;font-weight:700;color:var(--ocean-deep);
+  cursor:pointer;user-select:none;border:none;background:transparent;
+  font-family:'Zen Kaku Gothic New',sans-serif;
+  transition:background .15s, color .15s;
+}
+.tab.active{background:var(--ocean-deep);color:#fff;}
+
+.panel{display:none;}
+.panel.active{display:block;animation:fade .25s ease;}
+@keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+
+/* progress */
+.progress-wrap{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 18px;margin-bottom:16px;}
+.progress-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;}
+.progress-top .label{font-family:'Shippori Mincho',serif;font-weight:700;font-size:.95rem;}
+.progress-top .count{font-size:.78rem;color:var(--ink-soft);}
+.bar{height:8px;border-radius:100px;background:var(--paper-deep);overflow:hidden;}
+.bar-fill{height:100%;background:linear-gradient(90deg,var(--ocean),var(--sun));border-radius:100px;transition:width .3s ease;}
+
+/* day group */
+.day-group{margin-bottom:22px;}
+.day-head{
+  display:flex;align-items:baseline;gap:10px;
+  background:var(--ocean-deep);color:#fff;border-radius:10px;
+  padding:9px 14px;margin-bottom:8px;
+}
+.day-head .dnum{font-size:.68rem;letter-spacing:.15em;opacity:.75;}
+.day-head h3{font-family:'Shippori Mincho',serif;font-size:1rem;margin:0;font-weight:600;flex:1;}
+
+.item{
+  display:flex;align-items:flex-start;gap:12px;
+  background:#fff;border:1px solid var(--line);border-radius:12px;
+  padding:12px 14px;margin-bottom:8px;cursor:pointer;
+  transition:background .15s, border-color .15s;
+}
+.item:hover{border-color:var(--ocean);}
+.item.checked{background:var(--paper-deep);}
+.item.custom{border-style:dashed;border-color:var(--sun);}
+.chk{
+  flex-shrink:0;width:22px;height:22px;border-radius:7px;
+  border:2px solid var(--ocean);margin-top:1px;
+  display:flex;align-items:center;justify-content:center;
+  background:#fff;transition:background .15s, border-color .15s;
+}
+.item.checked .chk{background:var(--ocean);border-color:var(--ocean);}
+.chk svg{width:13px;height:13px;opacity:0;transition:opacity .1s;}
+.item.checked .chk svg{opacity:1;}
+.item .time{
+  font-family:'Shippori Mincho',serif;font-weight:700;font-size:.75rem;
+  color:var(--ocean-deep);min-width:44px;padding-top:2px;
+}
+.item .title{font-size:.9rem;font-weight:500;flex:1;}
+.item.checked .title{color:var(--ink-soft);text-decoration:line-through;text-decoration-color:var(--ocean);}
+.item-body{flex:1;min-width:0;}
+.by-tag{font-size:.68rem;color:var(--ink-soft);margin-top:3px;}
+.by-tag b{color:var(--ocean-deep);}
+.del-inline{
+  flex-shrink:0;background:none;border:none;color:var(--ink-soft);
+  cursor:pointer;font-size:1rem;line-height:1;padding:2px 4px;
+}
+.del-inline:hover{color:var(--coral);}
+
+/* packing categories */
+.cat-head{
+  font-family:'Shippori Mincho',serif;font-weight:700;font-size:.92rem;
+  color:var(--ocean-deep);margin:20px 0 8px;
+  border-bottom:1px solid var(--line);padding-bottom:6px;
+}
+.cat-head:first-of-type{margin-top:0;}
+.pack-item{
+  display:flex;align-items:center;gap:12px;
+  background:#fff;border:1px solid var(--line);border-radius:12px;
+  padding:11px 14px;margin-bottom:8px;cursor:pointer;
+}
+.pack-item.checked{background:var(--paper-deep);}
+.pack-item.custom{border-style:dashed;border-color:var(--sun);}
+.pack-item .title{font-size:.88rem;flex:1;}
+.pack-item.checked .title{color:var(--ink-soft);text-decoration:line-through;text-decoration-color:var(--ocean);}
+
+/* add controls */
+.add-btn{
+  display:block;width:100%;text-align:center;
+  background:none;border:1.5px dashed var(--ocean);border-radius:12px;
+  padding:10px;font-size:.82rem;font-weight:700;color:var(--ocean-deep);
+  cursor:pointer;margin-top:2px;font-family:'Zen Kaku Gothic New',sans-serif;
+}
+.add-form{
+  display:flex;gap:8px;margin-top:2px;margin-bottom:8px;
+  background:var(--paper-deep);border-radius:12px;padding:10px;
+}
+.add-form input[type=text]{
+  border:1.5px solid var(--line);border-radius:9px;padding:8px 10px;
+  font-size:.82rem;font-family:'Zen Kaku Gothic New',sans-serif;background:#fff;
+}
+.add-form .time-input{width:64px;flex:none;}
+.add-form .title-input{flex:1;min-width:0;}
+.add-form button{
+  background:var(--ocean);color:#fff;border:none;border-radius:9px;
+  padding:0 14px;font-weight:700;font-size:.8rem;cursor:pointer;
+  font-family:'Zen Kaku Gothic New',sans-serif;
+}
+
+/* wishlist */
+.wish-form{display:flex;gap:8px;margin-bottom:16px;}
+.wish-form input[type=text]{
+  flex:1;border:1.5px solid var(--line);border-radius:10px;
+  padding:11px 14px;font-size:.88rem;font-family:'Zen Kaku Gothic New',sans-serif;
+  background:#fff;color:var(--ink);
+}
+.wish-form input[type=text]:focus{outline:none;border-color:var(--ocean);}
+.wish-form select{
+  border:1.5px solid var(--line);border-radius:10px;padding:0 10px;
+  font-size:.8rem;font-family:'Zen Kaku Gothic New',sans-serif;background:#fff;color:var(--ink-soft);
+}
+.wish-form button{
+  background:var(--coral);color:#fff;border:none;border-radius:10px;
+  padding:0 18px;font-weight:700;font-size:.85rem;cursor:pointer;
+  font-family:'Zen Kaku Gothic New',sans-serif;
+}
+
+.wish-empty{
+  text-align:center;color:var(--ink-soft);font-size:.85rem;
+  padding:40px 20px;border:1.5px dashed var(--line);border-radius:14px;
+}
+.wish-item{
+  display:flex;align-items:flex-start;gap:12px;
+  background:#fff;border:1px solid var(--line);border-radius:12px;
+  padding:12px 14px;margin-bottom:8px;
+}
+.wish-item.done{background:var(--paper-deep);}
+.wish-item .chk{cursor:pointer;}
+.wish-item .body{flex:1;min-width:0;}
+.wish-item .tag{
+  display:inline-block;font-size:.65rem;font-weight:700;
+  padding:2px 9px;border-radius:100px;margin-bottom:4px;
+  background:var(--paper-deep);color:var(--ocean-deep);
+}
+.wish-item .tag.fun{background:#FBEADD;color:#B87A1E;}
+.wish-item .text{font-size:.9rem;word-break:break-word;}
+.wish-item.done .text{color:var(--ink-soft);text-decoration:line-through;text-decoration-color:var(--ocean);}
+
+.hint{font-size:.75rem;color:var(--ink-soft);text-align:center;margin:18px 0 4px;}
+
+/* name banner */
+.name-banner{
+  background:var(--ocean-deep);color:#fff;border-radius:14px;
+  padding:14px 16px;margin-bottom:16px;
+}
+.name-banner p{margin:0 0 10px;font-size:.85rem;line-height:1.5;}
+.name-row{display:flex;gap:8px;}
+.name-row input{
+  flex:1;border:none;border-radius:9px;padding:10px 12px;
+  font-size:.88rem;font-family:'Zen Kaku Gothic New',sans-serif;
+}
+.name-row input:focus{outline:2px solid var(--sun);}
+.name-row button{
+  background:var(--sun);color:#1F2E3D;border:none;border-radius:9px;
+  padding:0 16px;font-weight:700;font-size:.85rem;cursor:pointer;
+  font-family:'Zen Kaku Gothic New',sans-serif;
+}
+.whoami{
+  display:flex;align-items:center;justify-content:flex-end;gap:8px;
+  font-size:.75rem;color:var(--ink-soft);margin-bottom:10px;
+}
+.whoami b{color:var(--ocean-deep);}
+.whoami button{
+  background:none;border:none;color:var(--ocean);font-size:.75rem;
+  text-decoration:underline;cursor:pointer;padding:0;
+  font-family:'Zen Kaku Gothic New',sans-serif;
+}
+
+@media (max-width:420px){
+  .item .time{min-width:38px;font-size:.7rem;}
+  .wish-form{flex-wrap:wrap;}
+  .wish-form select{order:2;}
+  .wish-form button{order:3;flex:1;padding:10px;}
+  .wish-form input[type=text]{order:1;width:100%;}
+  .add-form{flex-wrap:wrap;}
+  .add-form .time-input{width:100%;}
+  .add-form button{flex:1;padding:10px;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="hd">
+    <div class="eyebrow">MIYAZAKI TRIP CHECKLIST</div>
+    <h1>ひなたフェス2026 旅チェックリスト</h1>
+    <div class="sub">2026.9.3 Thu — 9.7 Mon</div>
+  </div>
+
+  <div class="conn-row"><span class="conn-dot" id="conn-dot"></span><span id="conn-text">接続確認中…</span></div>
+
+  <div id="name-area"></div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="itinerary">工程チェック</button>
+    <button class="tab" data-tab="packing">持ち物チェック</button>
+    <button class="tab" data-tab="wishlist">楽しみリスト</button>
+  </div>
+
+  <!-- ITINERARY -->
+  <div class="panel active" id="panel-itinerary">
+    <div class="progress-wrap">
+      <div class="progress-top">
+        <span class="label">全体の進み具合</span>
+        <span class="count" id="itin-count">0 / 0</span>
+      </div>
+      <div class="bar"><div class="bar-fill" id="itin-bar" style="width:0%"></div></div>
+    </div>
+    <div id="itin-days"></div>
+  </div>
+
+  <!-- PACKING -->
+  <div class="panel" id="panel-packing">
+    <div class="progress-wrap">
+      <div class="progress-top">
+        <span class="label">持ち物の準備</span>
+        <span class="count" id="pack-count">0 / 0</span>
+      </div>
+      <div class="bar"><div class="bar-fill" id="pack-bar" style="width:0%"></div></div>
+    </div>
+    <div id="pack-cats"></div>
+  </div>
+
+  <!-- WISHLIST -->
+  <div class="panel" id="panel-wishlist">
+    <form class="wish-form" id="wish-form">
+      <input type="text" id="wish-input" placeholder="巡りたい場所や楽しみにしていることを追加" maxlength="120">
+      <select id="wish-type">
+        <option value="spot">📍行きたい場所</option>
+        <option value="fun">✨楽しみなこと</option>
+      </select>
+      <button type="submit">追加</button>
+    </form>
+    <div id="wish-list"></div>
+  </div>
+
+  <div class="hint">チェックや追加した内容は、このリンクを開いた全員にリアルタイムで共有されます。</div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getDatabase, ref, onValue, set, onDisconnect } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDVTD0qhpx-stei6RduVbmC3JPaFS0knyg",
+  authDomain: "hinatafes2026-checklist.firebaseapp.com",
+  databaseURL: "https://hinatafes2026-checklist-default-rtdb.firebaseio.com",
+  projectId: "hinatafes2026-checklist",
+  storageBucket: "hinatafes2026-checklist.firebasestorage.app",
+  messagingSenderId: "795194830893",
+  appId: "1:795194830893:web:a4501ef918394f457bc8a4"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+const stateRef = ref(db, 'checklistState');
+const wishRef = ref(db, 'wishlist');
+const customRef = ref(db, 'customItinerary');
+const customPackRef = ref(db, 'customPacking');
+const connRef = ref(db, '.info/connected');
+
+const NAME_KEY = 'miyazaki-user-name';
+
+const itineraryData = [
+  {day:"DAY 1", date:"9/3(木)・宮崎入り", stops:[
+    {id:"d1-1", time:"15:25", title:"羽田空港 発"},
+    {id:"d1-2", time:"17:00", title:"宮崎空港 着／レンタカー受取"},
+    {id:"d1-3", time:"18:30頃", title:"シーガイア チェックイン"},
+    {id:"d1-4", time:"夜", title:"宮崎グルメで前夜祭"},
+  ]},
+  {day:"DAY 2", date:"9/4(金)・五期生聖地巡礼", stops:[
+    {id:"d2-1", time:"8:00", title:"ホテル出発"},
+    {id:"d2-2", time:"9:30頃", title:"都井岬灯台"},
+    {id:"d2-3", time:"10:00頃", title:"都井岬（小松ヶ丘）★聖地"},
+    {id:"d2-4", time:"11:00頃", title:"恋ヶ浦 ★聖地"},
+    {id:"d2-5", time:"12:00", title:"串間・日南で昼食"},
+    {id:"d2-6", time:"14:00頃", title:"鵜戸神宮"},
+    {id:"d2-7", time:"15:30頃", title:"青島"},
+    {id:"d2-8", time:"16:00頃", title:"こどものくに 🌴思い出"},
+    {id:"d2-9", time:"18:00頃", title:"とんかつ志乃で夕食"},
+  ]},
+  {day:"DAY 3", date:"9/5(土)・LIVE DAY1", stops:[
+    {id:"d3-1", time:"9:00頃", title:"ホテル出発"},
+    {id:"d3-2", time:"9:30〜", title:"場内駐車場 入庫"},
+    {id:"d3-3", time:"10:00", title:"総合運動公園 開園"},
+    {id:"d3-4", time:"日中", title:"スペシャルパレード"},
+    {id:"d3-5", time:"14:30", title:"スタジアム開場"},
+    {id:"d3-6", time:"16:30", title:"LIVE 開演"},
+    {id:"d3-7", time:"終演後", title:"出庫・帰路"},
+  ]},
+  {day:"DAY 4", date:"9/6(日)・LIVE DAY2", stops:[
+    {id:"d4-1", time:"9:00頃", title:"ホテル出発"},
+    {id:"d4-2", time:"9:30〜", title:"場内駐車場 入庫"},
+    {id:"d4-3", time:"10:00", title:"総合運動公園 開園"},
+    {id:"d4-4", time:"日中", title:"スペシャルパレード"},
+    {id:"d4-5", time:"14:30", title:"スタジアム開場"},
+    {id:"d4-6", time:"16:30", title:"LIVE 開演"},
+    {id:"d4-7", time:"終演後", title:"出庫・帰路"},
+    {id:"d4-8", time:"夜", title:"打ち上げ夕食"},
+  ]},
+  {day:"DAY 5", date:"9/7(月)・帰路", stops:[
+    {id:"d5-1", time:"9:00〜", title:"フェニックス自然動物園"},
+    {id:"d5-2", time:"11:00頃", title:"ホテル チェックアウト"},
+    {id:"d5-3", time:"12:00頃", title:"レンタカー返却"},
+    {id:"d5-4", time:"15:45", title:"宮崎空港 発"},
+    {id:"d5-5", time:"17:35", title:"羽田空港 着"},
+  ]},
+];
+
+const packingData = [
+  {cat:"暑さ・日差し対策", items:[
+    {id:"p1", text:"帽子・日傘・サングラス"},
+    {id:"p2", text:"日焼け止め"},
+    {id:"p3", text:"冷感タオル・ネッククーラー"},
+    {id:"p4", text:"塩分タブレット・経口補水液"},
+    {id:"p5", text:"飲料（多めに）"},
+  ]},
+  {cat:"天候・移動まわり", items:[
+    {id:"p6", text:"レインコート／ポンチョ"},
+    {id:"p7", text:"動きやすい服装・履き慣れた靴"},
+    {id:"p8", text:"モバイルバッテリー"},
+    {id:"p9", text:"現金・交通系ICカード"},
+  ]},
+  {cat:"常備品", items:[
+    {id:"p10", text:"常備薬・絆創膏・冷えピタ"},
+    {id:"p11", text:"うちわ"},
+    {id:"p12", text:"レジャーシート・折りたたみ椅子"},
+    {id:"p13", text:"ゴミ袋"},
+  ]},
+  {cat:"放水対策（DAY3・4）", items:[
+    {id:"p14", text:"防水ポーチ（スマホ・貴重品用）"},
+    {id:"p15", text:"着替え・小さめのタオル"},
+  ]},
+];
+
+let state = { itinerary:{}, packing:{} };
+let wishes = [];
+let customStops = [];
+let customPacking = [];
+let myName = localStorage.getItem(NAME_KEY) || '';
+let openAddForm = null;
+let openAddPackForm = null;
+
+function checkmarkSVG(){
+  return '<svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 8.5L6.2 11.5L13 4.5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+}
+
+/* ---------- connection status ---------- */
+onValue(connRef, (snap)=>{
+  const dot = document.getElementById('conn-dot');
+  const text = document.getElementById('conn-text');
+  if(snap.val() === true){
+    dot.className = 'conn-dot on';
+    text.textContent = 'リアルタイム同期中';
+  }else{
+    dot.className = 'conn-dot off';
+    text.textContent = '接続待機中…（電波を確認してください）';
+  }
+});
+
+/* ---------- name ---------- */
+function renderNameArea(){
+  const wrap = document.getElementById('name-area');
+  if(!myName){
+    wrap.innerHTML = `
+      <div class="name-banner">
+        <p>お名前を入力してください。追加した工程やメモに「誰が書いたか」が表示されるようになります。</p>
+        <div class="name-row">
+          <input type="text" id="name-input" placeholder="例：かず" maxlength="20">
+          <button id="name-save">決定</button>
+        </div>
+      </div>
+    `;
+    document.getElementById('name-save').addEventListener('click', ()=>{
+      const v = document.getElementById('name-input').value.trim();
+      if(!v) return;
+      myName = v;
+      localStorage.setItem(NAME_KEY, myName);
+      renderNameArea();
+    });
+    document.getElementById('name-input').addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter') document.getElementById('name-save').click();
+    });
+  }else{
+    wrap.innerHTML = `
+      <div class="whoami">
+        <span><b>${myName}</b> さんとして操作中</span>
+        <button id="name-edit">名前を変更</button>
+      </div>
+    `;
+    document.getElementById('name-edit').addEventListener('click', ()=>{
+      myName = '';
+      renderNameArea();
+    });
+  }
+}
+
+/* ---------- itinerary ---------- */
+function renderItinerary(){
+  const wrap = document.getElementById('itin-days');
+  wrap.innerHTML = '';
+  let totalAll=0, checkedAll=0;
+  itineraryData.forEach(day=>{
+    const dayCustoms = customStops.filter(c=>c.day===day.day);
+    totalAll += day.stops.length + dayCustoms.length;
+
+    const group = document.createElement('div');
+    group.className = 'day-group';
+    group.innerHTML = `<div class="day-head"><span class="dnum">${day.day}</span><h3>${day.date}</h3></div>`;
+
+    day.stops.forEach(stop=>{
+      const isChecked = !!state.itinerary[stop.id];
+      if(isChecked) checkedAll++;
+      const el = document.createElement('div');
+      el.className = 'item' + (isChecked ? ' checked' : '');
+      el.innerHTML = `<span class="chk">${checkmarkSVG()}</span><span class="time">${stop.time}</span><span class="title">${stop.title}</span>`;
+      el.addEventListener('click', ()=>{
+        state.itinerary[stop.id] = !state.itinerary[stop.id];
+        set(stateRef, state);
+      });
+      group.appendChild(el);
+    });
+
+    dayCustoms.forEach(stop=>{
+      const isChecked = !!state.itinerary[stop.id];
+      if(isChecked) checkedAll++;
+      const el = document.createElement('div');
+      el.className = 'item custom' + (isChecked ? ' checked' : '');
+      el.innerHTML = `
+        <span class="chk">${checkmarkSVG()}</span>
+        <span class="time"></span>
+        <div class="item-body"><span class="title"></span><div class="by-tag">${stop.by ? '<b>'+stop.by+'</b>さんが追加' : ''}</div></div>
+        <button class="del-inline" aria-label="削除">×</button>
+      `;
+      el.querySelector('.time').textContent = stop.time || '';
+      el.querySelector('.title').textContent = stop.title;
+      el.addEventListener('click', (e)=>{
+        if(e.target.closest('.del-inline')) return;
+        state.itinerary[stop.id] = !state.itinerary[stop.id];
+        set(stateRef, state);
+      });
+      el.querySelector('.del-inline').addEventListener('click', (e)=>{
+        e.stopPropagation();
+        customStops = customStops.filter(c=>c.id!==stop.id);
+        delete state.itinerary[stop.id];
+        set(customRef, customStops);
+        set(stateRef, state);
+      });
+      group.appendChild(el);
+    });
+
+    if(openAddForm === day.day){
+      const form = document.createElement('div');
+      form.className = 'add-form';
+      form.innerHTML = `<input type="text" class="time-input" placeholder="時間" maxlength="12"><input type="text" class="title-input" placeholder="予定を入力"><button>追加</button>`;
+      const timeInput = form.querySelector('.time-input');
+      const titleInput = form.querySelector('.title-input');
+      const addBtn = form.querySelector('button');
+      addBtn.addEventListener('click', ()=>{
+        const title = titleInput.value.trim();
+        if(!title) return;
+        customStops.push({ id:'c'+Date.now(), day: day.day, time: timeInput.value.trim(), title, by: myName || null });
+        set(customRef, customStops);
+        openAddForm = null;
+        renderItinerary();
+      });
+      titleInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter') addBtn.click(); });
+      group.appendChild(form);
+    }else{
+      const btn = document.createElement('button');
+      btn.className = 'add-btn';
+      btn.textContent = '＋ 予定を追加';
+      btn.addEventListener('click', ()=>{ openAddForm = day.day; renderItinerary(); });
+      group.appendChild(btn);
+    }
+
+    wrap.appendChild(group);
+  });
+  document.getElementById('itin-count').textContent = `${checkedAll} / ${totalAll}`;
+  document.getElementById('itin-bar').style.width = totalAll ? (checkedAll/totalAll*100)+'%' : '0%';
+}
+
+/* ---------- packing ---------- */
+function renderPacking(){
+  const wrap = document.getElementById('pack-cats');
+  wrap.innerHTML = '';
+  let totalAll=0, checkedAll=0;
+  packingData.forEach(cat=>{
+    const catCustoms = customPacking.filter(c=>c.cat===cat.cat);
+    totalAll += cat.items.length + catCustoms.length;
+
+    const head = document.createElement('div');
+    head.className = 'cat-head';
+    head.textContent = cat.cat;
+    wrap.appendChild(head);
+
+    cat.items.forEach(item=>{
+      const isChecked = !!state.packing[item.id];
+      if(isChecked) checkedAll++;
+      const el = document.createElement('div');
+      el.className = 'pack-item' + (isChecked ? ' checked' : '');
+      el.innerHTML = `<span class="chk">${checkmarkSVG()}</span><span class="title">${item.text}</span>`;
+      el.addEventListener('click', ()=>{
+        state.packing[item.id] = !state.packing[item.id];
+        set(stateRef, state);
+      });
+      wrap.appendChild(el);
+    });
+
+    catCustoms.forEach(item=>{
+      const isChecked = !!state.packing[item.id];
+      if(isChecked) checkedAll++;
+      const el = document.createElement('div');
+      el.className = 'pack-item custom' + (isChecked ? ' checked' : '');
+      el.innerHTML = `
+        <span class="chk">${checkmarkSVG()}</span>
+        <div class="item-body"><span class="title"></span><div class="by-tag">${item.by ? '<b>'+item.by+'</b>さんが追加' : ''}</div></div>
+        <button class="del-inline" aria-label="削除">×</button>
+      `;
+      el.querySelector('.title').textContent = item.text;
+      el.addEventListener('click', (e)=>{
+        if(e.target.closest('.del-inline')) return;
+        state.packing[item.id] = !state.packing[item.id];
+        set(stateRef, state);
+      });
+      el.querySelector('.del-inline').addEventListener('click', (e)=>{
+        e.stopPropagation();
+        customPacking = customPacking.filter(c=>c.id!==item.id);
+        delete state.packing[item.id];
+        set(customPackRef, customPacking);
+        set(stateRef, state);
+      });
+      wrap.appendChild(el);
+    });
+
+    if(openAddPackForm === cat.cat){
+      const form = document.createElement('div');
+      form.className = 'add-form';
+      form.innerHTML = `<input type="text" class="title-input" placeholder="持ち物を入力"><button>追加</button>`;
+      const textInput = form.querySelector('.title-input');
+      const addBtn = form.querySelector('button');
+      addBtn.addEventListener('click', ()=>{
+        const text = textInput.value.trim();
+        if(!text) return;
+        customPacking.push({ id:'cp'+Date.now(), cat: cat.cat, text, by: myName || null });
+        set(customPackRef, customPacking);
+        openAddPackForm = null;
+        renderPacking();
+      });
+      textInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter') addBtn.click(); });
+      wrap.appendChild(form);
+    }else{
+      const btn = document.createElement('button');
+      btn.className = 'add-btn';
+      btn.textContent = '＋ 持ち物を追加';
+      btn.addEventListener('click', ()=>{ openAddPackForm = cat.cat; renderPacking(); });
+      wrap.appendChild(btn);
+    }
+  });
+  document.getElementById('pack-count').textContent = `${checkedAll} / ${totalAll}`;
+  document.getElementById('pack-bar').style.width = totalAll ? (checkedAll/totalAll*100)+'%' : '0%';
+}
+
+/* ---------- wishlist ---------- */
+function renderWishlist(){
+  const wrap = document.getElementById('wish-list');
+  wrap.innerHTML = '';
+  if(wishes.length === 0){
+    wrap.innerHTML = '<div class="wish-empty">まだ何も追加されていません。<br>行きたい場所や楽しみにしていることを書いてみましょう。</div>';
+    return;
+  }
+  wishes.slice().reverse().forEach(w=>{
+    const el = document.createElement('div');
+    el.className = 'wish-item' + (w.done ? ' done' : '');
+    const tagClass = w.type === 'fun' ? 'fun' : 'spot';
+    const tagLabel = w.type === 'fun' ? '✨楽しみなこと' : '📍行きたい場所';
+    el.innerHTML = `
+      <span class="chk">${checkmarkSVG()}</span>
+      <div class="body">
+        <span class="tag ${tagClass}">${tagLabel}</span>
+        <div class="text"></div>
+        <div class="by-tag">${w.by ? '<b>'+w.by+'</b>さんが追加' : ''}</div>
+      </div>
+      <button class="del-inline" aria-label="削除">×</button>
+    `;
+    el.querySelector('.text').textContent = w.text;
+    el.querySelector('.chk').addEventListener('click', ()=>{
+      w.done = !w.done;
+      set(wishRef, wishes);
+    });
+    el.querySelector('.del-inline').addEventListener('click', ()=>{
+      wishes = wishes.filter(x=>x.id !== w.id);
+      set(wishRef, wishes);
+    });
+    wrap.appendChild(el);
+  });
+}
+
+document.getElementById('wish-form').addEventListener('submit', (e)=>{
+  e.preventDefault();
+  const input = document.getElementById('wish-input');
+  const type = document.getElementById('wish-type').value;
+  const text = input.value.trim();
+  if(!text) return;
+  wishes.push({ id: 'w'+Date.now(), text, type, done:false, by: myName || null });
+  input.value = '';
+  set(wishRef, wishes);
+});
+
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-'+tab.dataset.tab).classList.add('active');
+  });
+});
+
+/* ---------- realtime listeners ---------- */
+onValue(stateRef, (snap)=>{
+  state = snap.val() || { itinerary:{}, packing:{} };
+  if(!state.itinerary) state.itinerary = {};
+  if(!state.packing) state.packing = {};
+  renderItinerary();
+  renderPacking();
+});
+onValue(wishRef, (snap)=>{
+  wishes = snap.val() || [];
+  renderWishlist();
+});
+onValue(customRef, (snap)=>{
+  customStops = snap.val() || [];
+  renderItinerary();
+});
+onValue(customPackRef, (snap)=>{
+  customPacking = snap.val() || [];
+  renderPacking();
+});
+
+renderNameArea();
+</script>
+</body>
+</html>
