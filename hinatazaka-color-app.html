@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>日向坂46 サイリウムカラー</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 16px;
+    background: #f4f7f9;
+    font-family: 'Hiragino Sans', 'Yu Gothic', 'Meiryo', sans-serif;
+    color: #333;
+  }
+  .app {
+    max-width: 480px;
+    margin: 0 auto;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .header {
+    background: #8fd3f4;
+    padding: 16px 16px 12px;
+    color: #fff;
+  }
+  .header .title {
+    font-size: 17px;
+    font-weight: 600;
+  }
+  .header .subtitle {
+    font-size: 12px;
+    opacity: 0.9;
+    margin-top: 2px;
+  }
+  .tabs {
+    display: flex;
+    border-bottom: 1px solid #eee;
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 12px 0;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    font-size: 13.5px;
+    color: #999;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .tab-btn.active {
+    border-bottom: 2px solid #8fd3f4;
+    font-weight: 600;
+    color: #333;
+  }
+  .tab-content {
+    max-height: 620px;
+    overflow-y: auto;
+  }
+
+  /* member list */
+  .gen-label {
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #4a9fc0;
+    background: #f6fbfe;
+  }
+  .member-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .member-row .name {
+    font-size: 15px;
+    font-weight: 500;
+  }
+  .dots {
+    display: flex;
+    gap: 6px;
+  }
+  .dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    flex-shrink: 0;
+    border: 1.5px solid rgba(0,0,0,0.12);
+  }
+  .dot.white-border {
+    border: 1.5px solid #ccc;
+  }
+  .dot.dark-text {
+    color: #333;
+  }
+  .dot.light-text {
+    color: #fff;
+  }
+  .dot.large {
+    width: 44px;
+    height: 44px;
+    font-size: 15px;
+  }
+
+  /* song list */
+  .song-row {
+    padding: 12px 14px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .song-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .song-title {
+    font-size: 14.5px;
+    font-weight: 500;
+  }
+  .song-note {
+    font-size: 12px;
+    color: #888;
+    margin-top: 2px;
+  }
+  .badge {
+    display: inline-block;
+    margin-top: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+  .badge.official {
+    background: #e8f4fd;
+    color: #1d7fd6;
+  }
+  .badge.fan {
+    background: #fff3e0;
+    color: #e6820a;
+  }
+  .rainbow-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: conic-gradient(red, orange, yellow, green, blue, indigo, violet, red);
+    flex-shrink: 0;
+  }
+  .split-sep {
+    font-size: 12px;
+    color: #aaa;
+  }
+
+  /* quiz */
+  .quiz-body { padding: 16px; }
+  .quiz-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .end-btn {
+    font-size: 12.5px;
+    color: #e63946;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    font-family: inherit;
+  }
+  .end-btn:disabled {
+    color: #ccc;
+    cursor: default;
+  }
+  .quiz-score {
+    font-size: 13px;
+    color: #888;
+  }
+  .quiz-question {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .quiz-question .label {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 10px;
+  }
+  .quiz-question .dots {
+    justify-content: center;
+  }
+  .quiz-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .quiz-option {
+    padding: 10px 8px;
+    border-radius: 8px;
+    background: #fafafa;
+    border: 1px solid #eee;
+    font-size: 14px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .quiz-option.correct {
+    background: #e6f7ec;
+    border: 1px solid #4caf50;
+  }
+  .quiz-option.wrong {
+    background: #fdeaea;
+    border: 1px solid #e63946;
+  }
+  .quiz-option:disabled {
+    cursor: default;
+  }
+  .next-btn {
+    margin-top: 16px;
+    width: 100%;
+    padding: 10px 0;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    background: #fff;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .quiz-result {
+    padding: 24px;
+    text-align: center;
+  }
+  .quiz-result .label {
+    font-size: 14px;
+    color: #888;
+    margin-bottom: 8px;
+  }
+  .quiz-result .score-big {
+    font-size: 32px;
+    font-weight: 700;
+    color: #8fd3f4;
+    margin-bottom: 4px;
+  }
+  .quiz-result .rate {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 24px;
+  }
+  .restart-btn {
+    width: 100%;
+    padding: 10px 0;
+    border-radius: 8px;
+    border: 1px solid #8fd3f4;
+    background: #f6fbfe;
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    cursor: pointer;
+    font-family: inherit;
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <div class="title">日向坂46 サイリウムカラー</div>
+    <div class="subtitle">メンバー・楽曲のカラー記憶用アプリ</div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="quiz">クイズ</button>
+    <button class="tab-btn" data-tab="members">メンバー一覧</button>
+    <button class="tab-btn" data-tab="songs">楽曲カラー</button>
+  </div>
+  <div class="tab-content">
+    <div id="tab-quiz"></div>
+    <div id="tab-members" style="display:none;"></div>
+    <div id="tab-songs" style="display:none;"></div>
+  </div>
+</div>
+
+<script>
+// ===== ペンライト操作番号（日向坂46 15色） =====
+const PEN_NUMBERS = {
+  "パステルブルー": 1, "エメラルドグリーン": 2, "グリーン": 3, "パールグリーン": 4,
+  "ライトグリーン": 5, "イエロー": 6, "オレンジ": 7, "レッド": 8, "ホワイト": 9,
+  "サクラピンク": 10, "ピンク": 11, "パッションピンク": 12, "バイオレット": 13,
+  "パープル": 14, "ブルー": 15
+};
+
+const COLOR_HEX = {
+  "パステルブルー": "#8fd3f4", "エメラルドグリーン": "#00a99d", "グリーン": "#4caf50",
+  "パールグリーン": "#b7e4c7", "ライトグリーン": "#c5e88a", "イエロー": "#ffe135",
+  "オレンジ": "#ff9f1c", "レッド": "#e63946", "ホワイト": "#ffffff",
+  "サクラピンク": "#ffb7c5", "ピンク": "#ff6fa5", "パッションピンク": "#ff2e88",
+  "バイオレット": "#8e44ad", "パープル": "#a06cd5", "ブルー": "#1d7fd6"
+};
+
+const LIGHT_TEXT_EXEMPT = ["ホワイト", "イエロー", "パステルブルー", "パールグリーン", "ライトグリーン"];
+
+// ===== メンバーデータ（現役、2026年8月時点） =====
+const MEMBERS = [
+  { name: "金村美玖", gen: 2, colors: ["パステルブルー", "イエロー"] },
+  { name: "小坂菜緒", gen: 2, colors: ["ホワイト", "バイオレット"] },
+  { name: "上村ひなの", gen: 3, colors: ["エメラルドグリーン", "レッド"] },
+  { name: "髙橋未来虹", gen: 3, colors: ["グリーン", "パープル"] },
+  { name: "森本茉莉", gen: 3, colors: ["オレンジ", "ブルー"] },
+  { name: "石塚瑶季", gen: 4, colors: ["サクラピンク", "オレンジ"] },
+  { name: "小西夏菜実", gen: 4, colors: ["パープル", "ブルー"] },
+  { name: "清水理央", gen: 4, colors: ["パステルブルー", "ピンク"] },
+  { name: "正源司陽子", gen: 4, colors: ["オレンジ", "レッド"] },
+  { name: "竹内希来里", gen: 4, colors: ["イエロー", "レッド"] },
+  { name: "平尾帆夏", gen: 4, colors: ["パステルブルー", "オレンジ"] },
+  { name: "平岡海月", gen: 4, colors: ["ブルー", "イエロー"] },
+  { name: "藤嶌果歩", gen: 4, colors: ["サクラピンク", "ブルー"] },
+  { name: "宮地すみれ", gen: 4, colors: ["バイオレット", "レッド"] },
+  { name: "山下葉留花", gen: 4, colors: ["ホワイト", "エメラルドグリーン"] },
+  { name: "渡辺莉奈", gen: 4, colors: ["ブルー", "ホワイト"] },
+  { name: "大田美月", gen: 5, colors: ["サクラピンク", "ピンク"] },
+  { name: "大野愛実", gen: 5, colors: ["レッド", "レッド"] },
+  { name: "片山紗希", gen: 5, colors: ["パステルブルー", "パステルブルー"] },
+  { name: "蔵盛妃那乃", gen: 5, colors: ["サクラピンク", "レッド"] },
+  { name: "坂井新奈", gen: 5, colors: ["ホワイト", "ホワイト"] },
+  { name: "佐藤優羽", gen: 5, colors: ["エメラルドグリーン", "エメラルドグリーン"] },
+  { name: "下田衣珠季", gen: 5, colors: ["パステルブルー", "エメラルドグリーン"] },
+  { name: "高井俐香", gen: 5, colors: ["パープル", "イエロー"] },
+  { name: "鶴崎仁香", gen: 5, colors: ["イエロー", "オレンジ"] },
+  { name: "松尾桜", gen: 5, colors: ["サクラピンク", "ホワイト"] }
+];
+
+const GEN_LABEL = { 2: "2期生", 3: "3期生", 4: "4期生", 5: "5期生" };
+
+// ===== 楽曲カラー =====
+const SONGS = [
+  { title: "ひらがなけやき", colors: ["ピンク"], type: "official", note: "影山優佳が指定" },
+  { title: "沈黙した恋人よ", colors: ["ブルー"], type: "official", note: "加藤史帆が指定" },
+  { title: "キレイになりたい", colors: ["レッド"], type: "official", note: "小坂菜緒が指定" },
+  { title: "夏色のミュール", colors: ["エメラルドグリーン"], type: "official", note: "東村芽依が指定（旧ターコイズ）" },
+  { title: "割れないシャボン玉", colors: ["サクラピンク"], type: "official", note: "河田陽菜が指定（旧パールピンク）" },
+  { title: "約束の卵", colors: ["パステルブルー"], type: "official", note: "グループカラー" },
+  { title: "キュン", colors: ["パステルブルー"], type: "official", note: "デビュー曲・グループカラー" },
+  { title: "まさか 偶然…", colors: ["イエロー"], type: "official", note: "松田好花が指定" },
+  { title: "パクチー ピーマン グリーンピース", colors: ["グリーン"], type: "official", note: "山口陽世が指定" },
+  { title: "ブルーベリー&ラズベリー", colors: ["ホワイト"], type: "official", note: "石塚瑶季（4期生）が指定" },
+  { title: "OVERTURE", colors: ["パステルブルー"], type: "fan", note: "グループカラーで統一" },
+  { title: "ハロウィンのカボチャが割れた", colors: ["オレンジ"], type: "fan", note: "カボチャ＝オレンジ" },
+  { title: "JOYFUL LOVE", colors: [], type: "fan", special: "rainbow", note: "客席エリアごとに虹色を作る" },
+  { title: "線香花火が消えるまで", colors: ["グリーン"], type: "fan", note: "線香＝緑" },
+  { title: "My fans", colors: ["レッド", "ブルー"], type: "fan", special: "split", note: "客席前半分は赤、後半分は青" },
+  { title: "One choice", colors: ["オレンジ"], type: "fan", note: "丹生明里カラー" },
+  { title: "永遠の白線", colors: ["ホワイト"], type: "fan", note: "白線＝白" },
+  { title: "キツネ", colors: ["レッド"], type: "fan", note: "ひなくり2022の赤照明演出から" },
+  { title: "男友達だから（加藤史帆ソロ）", colors: ["ブルー"], type: "fan", note: "加藤史帆カラー" },
+  { title: "わずかな光（佐々木美玲ソロ）", colors: ["イエロー"], type: "fan", note: "佐々木美玲カラー" },
+  { title: "居心地悪く、大人になった（齊藤京子ソロ）", colors: ["ホワイト"], type: "fan", note: "齊藤京子カラー" }
+];
+
+function makeDot(color, large) {
+  const hex = COLOR_HEX[color] || "#ccc";
+  const num = PEN_NUMBERS[color];
+  const isWhite = color === "ホワイト";
+  const textClass = LIGHT_TEXT_EXEMPT.includes(color) ? "dark-text" : "light-text";
+  const el = document.createElement("div");
+  el.className = "dot" + (isWhite ? " white-border" : "") + " " + textClass + (large ? " large" : "");
+  el.style.background = hex;
+  el.textContent = num;
+  el.title = color + "（No." + num + "）";
+  return el;
+}
+
+// ===== メンバー一覧タブ =====
+function renderMembers() {
+  const container = document.getElementById("tab-members");
+  container.innerHTML = "";
+  [2, 3, 4, 5].forEach(gen => {
+    const label = document.createElement("div");
+    label.className = "gen-label";
+    label.textContent = GEN_LABEL[gen];
+    container.appendChild(label);
+
+    MEMBERS.filter(m => m.gen === gen).forEach(m => {
+      const row = document.createElement("div");
+      row.className = "member-row";
+
+      const name = document.createElement("span");
+      name.className = "name";
+      name.textContent = m.name;
+      row.appendChild(name);
+
+      const dots = document.createElement("div");
+      dots.className = "dots";
+      m.colors.forEach(c => dots.appendChild(makeDot(c, false)));
+      row.appendChild(dots);
+
+      container.appendChild(row);
+    });
+  });
+}
+
+// ===== 楽曲カラータブ =====
+function renderSongs() {
+  const container = document.getElementById("tab-songs");
+  container.innerHTML = "";
+  SONGS.forEach(song => {
+    const row = document.createElement("div");
+    row.className = "song-row";
+
+    const top = document.createElement("div");
+    top.className = "song-top";
+
+    const left = document.createElement("div");
+    left.style.flex = "1";
+    const title = document.createElement("div");
+    title.className = "song-title";
+    title.textContent = song.title;
+    const note = document.createElement("div");
+    note.className = "song-note";
+    note.textContent = song.note;
+    left.appendChild(title);
+    left.appendChild(note);
+    top.appendChild(left);
+
+    const right = document.createElement("div");
+    right.className = "dots";
+    if (song.special === "rainbow") {
+      const rb = document.createElement("div");
+      rb.className = "rainbow-dot";
+      rb.title = "虹色（客席エリアごとに色分け）";
+      right.appendChild(rb);
+    } else if (song.special === "split") {
+      right.appendChild(makeDot(song.colors[0], false));
+      const sep = document.createElement("span");
+      sep.className = "split-sep";
+      sep.textContent = "/";
+      right.appendChild(sep);
+      right.appendChild(makeDot(song.colors[1], false));
+    } else {
+      song.colors.forEach(c => right.appendChild(makeDot(c, false)));
+    }
+    top.appendChild(right);
+    row.appendChild(top);
+
+    const badge = document.createElement("span");
+    badge.className = "badge " + (song.type === "official" ? "official" : "fan");
+    badge.textContent = song.type === "official" ? "オフィシャル決定" : "ファン暫定";
+    row.appendChild(badge);
+
+    container.appendChild(row);
+  });
+}
+
+// ===== クイズタブ =====
+let quizState = {
+  question: null,
+  selected: null,
+  score: { correct: 0, total: 0 },
+  finished: false
+};
+
+function genQuestion() {
+  const member = MEMBERS[Math.floor(Math.random() * MEMBERS.length)];
+  const pool = MEMBERS.filter(m => m.name !== member.name);
+  const wrongOptions = [];
+  while (wrongOptions.length < 3) {
+    const cand = pool[Math.floor(Math.random() * pool.length)];
+    if (!wrongOptions.includes(cand)) wrongOptions.push(cand);
+  }
+  const options = [...wrongOptions, member].sort(() => Math.random() - 0.5);
+  quizState.question = { member, options };
+  quizState.selected = null;
+}
+
+function handleSelect(opt) {
+  if (quizState.selected) return;
+  quizState.selected = opt;
+  quizState.score.total += 1;
+  if (opt.name === quizState.question.member.name) {
+    quizState.score.correct += 1;
+  }
+  renderQuiz();
+}
+
+function handleNext() {
+  genQuestion();
+  renderQuiz();
+}
+
+function handleFinish() {
+  if (quizState.score.total === 0) return;
+  quizState.finished = true;
+  renderQuiz();
+}
+
+function handleRestart() {
+  quizState = { question: null, selected: null, score: { correct: 0, total: 0 }, finished: false };
+  genQuestion();
+  renderQuiz();
+}
+
+function renderQuiz() {
+  const container = document.getElementById("tab-quiz");
+  container.innerHTML = "";
+
+  if (quizState.finished) {
+    const rate = quizState.score.total > 0
+      ? Math.round((quizState.score.correct / quizState.score.total) * 100)
+      : 0;
+    const wrap = document.createElement("div");
+    wrap.className = "quiz-result";
+    wrap.innerHTML = `
+      <div class="label">クイズ結果</div>
+      <div class="score-big">${quizState.score.correct} / ${quizState.score.total}</div>
+      <div class="rate">正答率 ${rate}%</div>
+    `;
+    const restartBtn = document.createElement("button");
+    restartBtn.className = "restart-btn";
+    restartBtn.textContent = "もう一度挑戦する";
+    restartBtn.onclick = handleRestart;
+    wrap.appendChild(restartBtn);
+    container.appendChild(wrap);
+    return;
+  }
+
+  if (!quizState.question) genQuestion();
+  const q = quizState.question;
+
+  const body = document.createElement("div");
+  body.className = "quiz-body";
+
+  const topRow = document.createElement("div");
+  topRow.className = "quiz-top-row";
+  const endBtn = document.createElement("button");
+  endBtn.className = "end-btn";
+  endBtn.textContent = "終了して結果を見る";
+  endBtn.disabled = quizState.score.total === 0;
+  endBtn.onclick = handleFinish;
+  const scoreLabel = document.createElement("div");
+  scoreLabel.className = "quiz-score";
+  scoreLabel.textContent = `スコア: ${quizState.score.correct} / ${quizState.score.total}`;
+  topRow.appendChild(endBtn);
+  topRow.appendChild(scoreLabel);
+  body.appendChild(topRow);
+
+  const qWrap = document.createElement("div");
+  qWrap.className = "quiz-question";
+  const qLabel = document.createElement("div");
+  qLabel.className = "label";
+  qLabel.textContent = "このサイリウムカラーのメンバーは？";
+  qWrap.appendChild(qLabel);
+  const qDots = document.createElement("div");
+  qDots.className = "dots";
+  q.member.colors.forEach(c => qDots.appendChild(makeDot(c, true)));
+  qWrap.appendChild(qDots);
+  body.appendChild(qWrap);
+
+  const optWrap = document.createElement("div");
+  optWrap.className = "quiz-options";
+  q.options.forEach(opt => {
+    const btn = document.createElement("button");
+    btn.className = "quiz-option";
+    btn.textContent = opt.name;
+    const isCorrect = opt.name === q.member.name;
+    if (quizState.selected) {
+      btn.disabled = true;
+      if (isCorrect) btn.classList.add("correct");
+      else if (opt === quizState.selected) btn.classList.add("wrong");
+    }
+    btn.onclick = () => handleSelect(opt);
+    optWrap.appendChild(btn);
+  });
+  body.appendChild(optWrap);
+
+  if (quizState.selected) {
+    const nextBtn = document.createElement("button");
+    nextBtn.className = "next-btn";
+    nextBtn.textContent = "次の問題へ";
+    nextBtn.onclick = handleNext;
+    body.appendChild(nextBtn);
+  }
+
+  container.appendChild(body);
+}
+
+// ===== タブ切り替え =====
+document.querySelectorAll(".tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    const target = btn.dataset.tab;
+    ["quiz", "members", "songs"].forEach(id => {
+      document.getElementById("tab-" + id).style.display = (id === target) ? "block" : "none";
+    });
+  });
+});
+
+// ===== 初期化 =====
+renderQuiz();
+renderMembers();
+renderSongs();
+</script>
+
+</body>
+</html>
