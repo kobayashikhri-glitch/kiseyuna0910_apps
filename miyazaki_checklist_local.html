@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ひなたフェス2026 旅チェックリスト（ローカル版）</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;800&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap');
+
+:root{
+  --paper:#FBF3E3;
+  --paper-deep:#F4E9D2;
+  --ink:#1F2E3D;
+  --ink-soft:#4B5A68;
+  --ocean:#0E7490;
+  --ocean-deep:#0B4F5C;
+  --sun:#F0A63A;
+  --coral:#E8604C;
+  --line:#D8CBB0;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Zen Kaku Gothic New',sans-serif;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+.app{max-width:720px;margin:0 auto;padding:20px 16px 80px;}
+
+.hd{text-align:center;padding:20px 0 16px;}
+.hd .eyebrow{font-size:.72rem;letter-spacing:.3em;color:var(--ocean-deep);font-weight:700;}
+.hd h1{font-family:'Shippori Mincho',serif;font-weight:800;font-size:1.7rem;margin:8px 0 4px;}
+.hd .sub{font-size:.8rem;color:var(--ink-soft);}
+.hd .badge{
+  display:inline-block;margin-top:8px;background:var(--paper-deep);color:var(--ocean-deep);
+  font-size:.68rem;font-weight:700;padding:3px 12px;border-radius:100px;
+}
+
+.tabs{display:flex;gap:6px;background:var(--paper-deep);border-radius:100px;padding:4px;margin:16px 0 18px;flex-wrap:wrap;}
+.tab{
+  flex:1;min-width:70px;text-align:center;padding:9px 6px;border-radius:100px;
+  font-size:.8rem;font-weight:700;color:var(--ocean-deep);
+  cursor:pointer;user-select:none;border:none;background:transparent;
+  font-family:'Zen Kaku Gothic New',sans-serif;
+  transition:background .15s, color .15s;
+}
+.tab.active{background:var(--ocean-deep);color:#fff;}
+
+.panel{display:none;}
+.panel.active{display:block;animation:fade .25s ease;}
+@keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+
+.progress-wrap{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 18px;margin-bottom:16px;}
+.progress-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;}
+.progress-top .label{font-family:'Shippori Mincho',serif;font-weight:700;font-size:.95rem;}
+.progress-top .count{font-size:.78rem;color:var(--ink-soft);}
+.bar{height:8px;border-radius:100px;background:var(--paper-deep);overflow:hidden;}
+.bar-fill{height:100%;background:linear-gradient(90deg,var(--ocean),var(--sun));border-radius:100px;transition:width .3s ease;}
+
+.day-group{margin-bottom:22px;}
+.day-head{
+  display:flex;align-items:baseline;gap:10px;
+  background:var(--ocean-deep);color:#fff;border-radius:10px;
+  padding:9px 14px;margin-bottom:8px;
+}
+.day-head .dnum{font-size:.68rem;letter-spacing:.15em;opacity:.75;}
+.day-head h3{font-family:'Shippori Mincho',serif;font-size:1rem;margin:0;font-weight:600;flex:1;}
+
+.item{
+  display:flex;align-items:flex-start;gap:12px;
+  background:#fff;border:1px solid var(--line);border-radius:12px;
+  padding:12px 14px;margin-bottom:8px;cursor:pointer;
+  transition:background .15s, border-color .15s;
+}
+.item:hover{border-color:var(--ocean);}
+.item.checked{background:var(--paper-deep);}
+.item.custom{border-style:dashed;border-color:var(--sun);}
+.chk{
+  flex-shrink:0;width:22px;height:22px;border-radius:7px;
+  border:2px solid var(--ocean);margin-top:1px;
+  display:flex;align-items:center;justify-content:center;
+  background:#fff;transition:background .15s, border-color .15s;
+}
+.item.checked .chk{background:var(--ocean);border-color:var(--ocean);}
+.chk svg{width:13px;height:13px;opacity:0;transition:opacity .1s;}
+.item.checked .chk svg{opacity:1;}
+.item .time{
+  font-family:'Shippori Mincho',serif;font-weight:700;font-size:.75rem;
+  color:var(--ocean-deep);min-width:44px;padding-top:2px;
+}
+.item .title{font-size:.9rem;font-weight:500;flex:1;}
+.item.checked .title{color:var(--ink-soft);text-decoration:line-through;text-decoration-color:var(--ocean);}
+.item-body{flex:1;min-width:0;}
+.del-inline{
+  flex-shrink:0;background:none;border:none;color:var(--ink-soft);
+  cursor:pointer;font-size:1rem;line-height:1;padding:2px 4px;
+}
+.del-inline:hover{color:var(--coral);}
+
+.cat-head{
+  font-family:'Shippori Mincho',serif;font-weight:700;font-size:.92rem;
+  color:var(--ocean-deep);margin:20px 0 8px;
+  border-bottom:1px solid var(--line);padding-bottom:6px;
+}
+.cat-head:first-of-type{margin-top:0;}
+.pack-item{
+  display:flex;align-items:center;gap:12px;
+  background:#fff;border:1px solid var(--line);border-radius:12px;
+  padding:11px 14px;margin-bottom:8px;cursor:pointer;
+}
+.pack-item.checked{background:var(--paper-deep);}
+.pack-item.custom{border-style:dashed;border-color:var(--sun);}
+.pack-item .title{font-size:.88rem;flex:1;}
+.pack-item.checked .title{color:var(--ink-soft);text-decoration:line-through;text-decoration-color:var(--ocean);}
+
+.add-btn{
+  display:block;width:100%;text-align:center;
+  background:none;border:1.5px dashed var(--ocean);border-radius:12px;
+  padding:10px;font-size:.82rem;font-weight:700;color:var(--ocean-deep);
+  cursor:pointer;margin-top:2px;font-family:'Zen Kaku Gothic New',sans-serif;
+}
+.add-form{
+  display:flex;gap:8px;margin-top:2px;margin-bottom:8px;
+  background:var(--paper-deep);border-radius:12px;padding:10px;
+}
+.add-form input[type=text]{
+  border:1.5px solid var(--line);border-radius:9px;padding:8px 10px;
+  font-size:.82rem;font-family:'Zen Kaku Gothic New',sans-serif;background:#fff;
+}
+.add-form .time-input{width:64px;flex:none;}
+.add-form .title-input{flex:1;min-width:0;}
+.add-form button{
+  background:var(--ocean);color:#fff;border:none;border-radius:9px;
+  padding:0 14px;font-weight:700;font-size:.8rem;cursor:pointer;
+  font-family:'Zen Kaku Gothic New',sans-serif;
+}
+
+.wish-form{display:flex;gap:8px;margin-bottom:16px;}
+.wish-form input[type=text]{
+  flex:1;border:1.5px solid var(--line);border-radius:10px;
+  padding:11px 14px;font-size:.88rem;font-family:'Zen Kaku Gothic New',sans-serif;
+  background:#fff;color:var(--ink);
+}
+.wish-form input[type=text]:focus{outline:none;border-color:var(--ocean);}
+.wish-form select{
+  border:1.5px solid var(--line);border-radius:10px;padding:0 10px;
+  font-size:.8rem;font-family:'Zen Kaku Gothic New',sans-serif;background:#fff;color:var(--ink-soft);
+}
+.wish-form button{
+  background:var(--coral);color:#fff;border:none;border-radius:10px;
+  padding:0 18px;font-weight:700;font-size:.85rem;cursor:pointer;
+  font-family:'Zen Kaku Gothic New',sans-serif;
+}
+.wish-empty{
+  text-align:center;color:var(--ink-soft);font-size:.85rem;
+  padding:40px 20px;border:1.5px dashed var(--line);border-radius:14px;
+}
+.wish-item{
+  display:flex;align-items:flex-start;gap:12px;
+  background:#fff;border:1px solid var(--line);border-radius:12px;
+  padding:12px 14px;margin-bottom:8px;
+}
+.wish-item.done{background:var(--paper-deep);}
+.wish-item .chk{cursor:pointer;}
+.wish-item .body{flex:1;min-width:0;}
+.wish-item .tag{
+  display:inline-block;font-size:.65rem;font-weight:700;
+  padding:2px 9px;border-radius:100px;margin-bottom:4px;
+  background:var(--paper-deep);color:var(--ocean-deep);
+}
+.wish-item .tag.fun{background:#FBEADD;color:#B87A1E;}
+.wish-item .text{font-size:.9rem;word-break:break-word;}
+.wish-item.done .text{color:var(--ink-soft);text-decoration:line-through;text-decoration-color:var(--ocean);}
+
+/* diary */
+.diary-card{
+  background:#fff;border:1px solid var(--line);border-radius:14px;
+  padding:16px 18px;margin-bottom:16px;
+}
+.diary-card .dhead{
+  display:flex;align-items:baseline;gap:10px;margin-bottom:10px;
+}
+.diary-card .dnum{
+  font-family:'Shippori Mincho',serif;font-size:.72rem;letter-spacing:.1em;
+  color:var(--ocean-deep);font-weight:700;
+}
+.diary-card h3{font-family:'Shippori Mincho',serif;font-size:1rem;margin:0;flex:1;}
+.diary-card textarea{
+  width:100%;min-height:110px;border:1.5px solid var(--line);border-radius:10px;
+  padding:12px 14px;font-size:.88rem;font-family:'Zen Kaku Gothic New',sans-serif;
+  color:var(--ink);background:var(--paper-deep);resize:vertical;
+  box-sizing:border-box;line-height:1.7;
+}
+.diary-card textarea:focus{outline:none;border-color:var(--ocean);background:#fff;}
+.diary-card textarea::placeholder{color:#A99B7F;}
+.diary-save{font-size:.7rem;color:var(--ocean-deep);text-align:right;margin-top:6px;min-height:1em;}
+
+.hint{font-size:.75rem;color:var(--ink-soft);text-align:center;margin:18px 0 4px;}
+
+/* download button */
+.dl-row{display:flex;justify-content:flex-end;margin-bottom:10px;}
+.dl-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  background:#fff;border:1.5px solid var(--ocean);border-radius:100px;
+  padding:7px 16px;font-size:.76rem;font-weight:700;color:var(--ocean-deep);
+  cursor:pointer;font-family:'Zen Kaku Gothic New',sans-serif;
+}
+.dl-btn:active{transform:scale(.97);}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="hd">
+    <div class="eyebrow">MIYAZAKI TRIP CHECKLIST</div>
+    <h1>ひなたフェス2026 旅チェックリスト</h1>
+    <div class="sub">2026.9.3 Thu — 9.7 Mon</div>
+    <div class="badge">ローカル版・この端末だけに保存</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="itinerary">工程チェック</button>
+    <button class="tab" data-tab="packing">持ち物チェック</button>
+    <button class="tab" data-tab="wishlist">楽しみリスト</button>
+    <button class="tab" data-tab="diary">思い出日記</button>
+  </div>
+
+  <!-- ITINERARY -->
+  <div class="panel active" id="panel-itinerary">
+    <div class="dl-row"><button class="dl-btn" id="dl-itinerary">📥 テキストでダウンロード</button></div>
+    <div class="progress-wrap">
+      <div class="progress-top">
+        <span class="label">全体の進み具合</span>
+        <span class="count" id="itin-count">0 / 0</span>
+      </div>
+      <div class="bar"><div class="bar-fill" id="itin-bar" style="width:0%"></div></div>
+    </div>
+    <div id="itin-days"></div>
+  </div>
+
+  <!-- PACKING -->
+  <div class="panel" id="panel-packing">
+    <div class="dl-row"><button class="dl-btn" id="dl-packing">📥 テキストでダウンロード</button></div>
+    <div class="progress-wrap">
+      <div class="progress-top">
+        <span class="label">持ち物の準備</span>
+        <span class="count" id="pack-count">0 / 0</span>
+      </div>
+      <div class="bar"><div class="bar-fill" id="pack-bar" style="width:0%"></div></div>
+    </div>
+    <div id="pack-cats"></div>
+  </div>
+
+  <!-- WISHLIST -->
+  <div class="panel" id="panel-wishlist">
+    <div class="dl-row"><button class="dl-btn" id="dl-wishlist">📥 テキストでダウンロード</button></div>
+    <form class="wish-form" id="wish-form">
+      <input type="text" id="wish-input" placeholder="巡りたい場所や楽しみにしていることを追加" maxlength="120">
+      <select id="wish-type">
+        <option value="spot">📍行きたい場所</option>
+        <option value="fun">✨楽しみなこと</option>
+      </select>
+      <button type="submit">追加</button>
+    </form>
+    <div id="wish-list"></div>
+  </div>
+
+  <!-- DIARY -->
+  <div class="panel" id="panel-diary">
+    <div class="dl-row"><button class="dl-btn" id="dl-diary">📥 テキストでダウンロード</button></div>
+    <div id="diary-days"></div>
+  </div>
+
+  <div class="hint">すべてこの端末のブラウザだけに保存されます（他の人とは共有されません）。</div>
+</div>
+
+<script>
+const LS_KEY = 'miyazaki-checklist-local-v1';
+
+const itineraryData = [
+  {day:"DAY 1", date:"9/3(木)・宮崎入り", stops:[
+    {id:"d1-1", time:"15:25", title:"羽田空港 発"},
+    {id:"d1-2", time:"17:00", title:"宮崎空港 着／レンタカー受取"},
+    {id:"d1-3", time:"18:30頃", title:"シーガイア チェックイン"},
+    {id:"d1-4", time:"夜", title:"宮崎グルメで前夜祭"},
+  ]},
+  {day:"DAY 2", date:"9/4(金)・五期生聖地巡礼", stops:[
+    {id:"d2-1", time:"8:00", title:"ホテル出発"},
+    {id:"d2-2", time:"9:30頃", title:"都井岬灯台"},
+    {id:"d2-3", time:"10:00頃", title:"都井岬（小松ヶ丘）★聖地"},
+    {id:"d2-4", time:"11:00頃", title:"恋ヶ浦 ★聖地"},
+    {id:"d2-5", time:"12:00", title:"串間・日南で昼食"},
+    {id:"d2-6", time:"14:00頃", title:"鵜戸神宮"},
+    {id:"d2-7", time:"15:30頃", title:"青島"},
+    {id:"d2-8", time:"16:00頃", title:"こどものくに 🌴思い出"},
+    {id:"d2-9", time:"18:00頃", title:"とんかつ志乃で夕食"},
+  ]},
+  {day:"DAY 3", date:"9/5(土)・LIVE DAY1", stops:[
+    {id:"d3-1", time:"9:00頃", title:"ホテル出発"},
+    {id:"d3-2", time:"9:30〜", title:"場内駐車場 入庫"},
+    {id:"d3-3", time:"10:00", title:"総合運動公園 開園"},
+    {id:"d3-4", time:"日中", title:"スペシャルパレード"},
+    {id:"d3-5", time:"14:30", title:"スタジアム開場"},
+    {id:"d3-6", time:"16:30", title:"LIVE 開演"},
+    {id:"d3-7", time:"終演後", title:"出庫・帰路"},
+  ]},
+  {day:"DAY 4", date:"9/6(日)・LIVE DAY2", stops:[
+    {id:"d4-1", time:"9:00頃", title:"ホテル出発"},
+    {id:"d4-2", time:"9:30〜", title:"場内駐車場 入庫"},
+    {id:"d4-3", time:"10:00", title:"総合運動公園 開園"},
+    {id:"d4-4", time:"日中", title:"スペシャルパレード"},
+    {id:"d4-5", time:"14:30", title:"スタジアム開場"},
+    {id:"d4-6", time:"16:30", title:"LIVE 開演"},
+    {id:"d4-7", time:"終演後", title:"出庫・帰路"},
+    {id:"d4-8", time:"夜", title:"打ち上げ夕食"},
+  ]},
+  {day:"DAY 5", date:"9/7(月)・帰路", stops:[
+    {id:"d5-1", time:"9:00〜", title:"フェニックス自然動物園"},
+    {id:"d5-2", time:"11:00頃", title:"ホテル チェックアウト"},
+    {id:"d5-3", time:"12:00頃", title:"レンタカー返却"},
+    {id:"d5-4", time:"15:45", title:"宮崎空港 発"},
+    {id:"d5-5", time:"17:35", title:"羽田空港 着"},
+  ]},
+];
+
+const packingData = [
+  {cat:"暑さ・日差し対策", items:[
+    {id:"p1", text:"帽子・日傘・サングラス"},
+    {id:"p2", text:"日焼け止め"},
+    {id:"p3", text:"冷感タオル・ネッククーラー"},
+    {id:"p4", text:"塩分タブレット・経口補水液"},
+    {id:"p5", text:"飲料（多めに）"},
+  ]},
+  {cat:"天候・移動まわり", items:[
+    {id:"p6", text:"レインコート／ポンチョ"},
+    {id:"p7", text:"動きやすい服装・履き慣れた靴"},
+    {id:"p8", text:"モバイルバッテリー"},
+    {id:"p9", text:"現金・交通系ICカード"},
+  ]},
+  {cat:"常備品", items:[
+    {id:"p10", text:"常備薬・絆創膏・冷えピタ"},
+    {id:"p11", text:"うちわ"},
+    {id:"p12", text:"レジャーシート・折りたたみ椅子"},
+    {id:"p13", text:"ゴミ袋"},
+  ]},
+  {cat:"放水対策（DAY3・4）", items:[
+    {id:"p14", text:"防水ポーチ（スマホ・貴重品用）"},
+    {id:"p15", text:"着替え・小さめのタオル"},
+  ]},
+];
+
+/* ---------- ローカルストレージ読み書き ---------- */
+function loadAll(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return { itinerary:{}, packing:{}, wishes:[], customStops:[], customPacking:[], diary:{}, deletedStops:[], deletedPacking:[] };
+}
+let data = loadAll();
+if(!data.itinerary) data.itinerary = {};
+if(!data.packing) data.packing = {};
+if(!data.wishes) data.wishes = [];
+if(!data.customStops) data.customStops = [];
+if(!data.customPacking) data.customPacking = [];
+if(!data.diary) data.diary = {};
+if(!data.deletedStops) data.deletedStops = [];
+if(!data.deletedPacking) data.deletedPacking = [];
+
+function saveAll(){
+  localStorage.setItem(LS_KEY, JSON.stringify(data));
+}
+
+let openAddForm = null;
+let openAddPackForm = null;
+
+function checkmarkSVG(){
+  return '<svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 8.5L6.2 11.5L13 4.5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+}
+
+/* ---------- itinerary ---------- */
+function renderItinerary(){
+  const wrap = document.getElementById('itin-days');
+  wrap.innerHTML = '';
+  let totalAll=0, checkedAll=0;
+  itineraryData.forEach(day=>{
+    const dayCustoms = data.customStops.filter(c=>c.day===day.day);
+    const activeDefaults = day.stops.filter(s=>!data.deletedStops.includes(s.id));
+    totalAll += activeDefaults.length + dayCustoms.length;
+
+    const group = document.createElement('div');
+    group.className = 'day-group';
+    group.innerHTML = `<div class="day-head"><span class="dnum">${day.day}</span><h3>${day.date}</h3></div>`;
+
+    day.stops.forEach(stop=>{
+      if(data.deletedStops.includes(stop.id)) return;
+      const isChecked = !!data.itinerary[stop.id];
+      if(isChecked) checkedAll++;
+      const el = document.createElement('div');
+      el.className = 'item' + (isChecked ? ' checked' : '');
+      el.innerHTML = `
+        <span class="chk">${checkmarkSVG()}</span>
+        <span class="time">${stop.time}</span>
+        <span class="title">${stop.title}</span>
+        <button class="del-inline" aria-label="削除">×</button>
+      `;
+      el.addEventListener('click', (e)=>{
+        if(e.target.closest('.del-inline')) return;
+        data.itinerary[stop.id] = !data.itinerary[stop.id];
+        saveAll();
+        renderItinerary();
+      });
+      el.querySelector('.del-inline').addEventListener('click', (e)=>{
+        e.stopPropagation();
+        if(!confirm('「'+stop.title+'」を予定から削除しますか？')) return;
+        data.deletedStops.push(stop.id);
+        delete data.itinerary[stop.id];
+        saveAll();
+        renderItinerary();
+      });
+      group.appendChild(el);
+    });
+
+    dayCustoms.forEach(stop=>{
+      const isChecked = !!data.itinerary[stop.id];
+      if(isChecked) checkedAll++;
+      const el = document.createElement('div');
+      el.className = 'item custom' + (isChecked ? ' checked' : '');
+      el.innerHTML = `
+        <span class="chk">${checkmarkSVG()}</span>
+        <span class="time"></span>
+        <div class="item-body"><span class="title"></span></div>
+        <button class="del-inline" aria-label="削除">×</button>
+      `;
+      el.querySelector('.time').textContent = stop.time || '';
+      el.querySelector('.title').textContent = stop.title;
+      el.addEventListener('click', (e)=>{
+        if(e.target.closest('.del-inline')) return;
+        data.itinerary[stop.id] = !data.itinerary[stop.id];
+        saveAll();
+        renderItinerary();
+      });
+      el.querySelector('.del-inline').addEventListener('click', (e)=>{
+        e.stopPropagation();
+        data.customStops = data.customStops.filter(c=>c.id!==stop.id);
+        delete data.itinerary[stop.id];
+        saveAll();
+        renderItinerary();
+      });
+      group.appendChild(el);
+    });
+
+    if(openAddForm === day.day){
+      const form = document.createElement('div');
+      form.className = 'add-form';
+      form.innerHTML = `<input type="text" class="time-input" placeholder="時間" maxlength="12"><input type="text" class="title-input" placeholder="予定を入力"><button>追加</button>`;
+      const timeInput = form.querySelector('.time-input');
+      const titleInput = form.querySelector('.title-input');
+      const addBtn = form.querySelector('button');
+      addBtn.addEventListener('click', ()=>{
+        const title = titleInput.value.trim();
+        if(!title) return;
+        data.customStops.push({ id:'c'+Date.now(), day: day.day, time: timeInput.value.trim(), title });
+        saveAll();
+        openAddForm = null;
+        renderItinerary();
+      });
+      titleInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter') addBtn.click(); });
+      group.appendChild(form);
+    }else{
+      const btn = document.createElement('button');
+      btn.className = 'add-btn';
+      btn.textContent = '＋ 予定を追加';
+      btn.addEventListener('click', ()=>{ openAddForm = day.day; renderItinerary(); });
+      group.appendChild(btn);
+    }
+
+    wrap.appendChild(group);
+  });
+  document.getElementById('itin-count').textContent = `${checkedAll} / ${totalAll}`;
+  document.getElementById('itin-bar').style.width = totalAll ? (checkedAll/totalAll*100)+'%' : '0%';
+}
+
+/* ---------- packing ---------- */
+function renderPacking(){
+  const wrap = document.getElementById('pack-cats');
+  wrap.innerHTML = '';
+  let totalAll=0, checkedAll=0;
+  packingData.forEach(cat=>{
+    const catCustoms = data.customPacking.filter(c=>c.cat===cat.cat);
+    const activeDefaults = cat.items.filter(it=>!data.deletedPacking.includes(it.id));
+    totalAll += activeDefaults.length + catCustoms.length;
+
+    const head = document.createElement('div');
+    head.className = 'cat-head';
+    head.textContent = cat.cat;
+    wrap.appendChild(head);
+
+    cat.items.forEach(item=>{
+      if(data.deletedPacking.includes(item.id)) return;
+      const isChecked = !!data.packing[item.id];
+      if(isChecked) checkedAll++;
+      const el = document.createElement('div');
+      el.className = 'pack-item' + (isChecked ? ' checked' : '');
+      el.innerHTML = `
+        <span class="chk">${checkmarkSVG()}</span>
+        <span class="title">${item.text}</span>
+        <button class="del-inline" aria-label="削除">×</button>
+      `;
+      el.addEventListener('click', (e)=>{
+        if(e.target.closest('.del-inline')) return;
+        data.packing[item.id] = !data.packing[item.id];
+        saveAll();
+        renderPacking();
+      });
+      el.querySelector('.del-inline').addEventListener('click', (e)=>{
+        e.stopPropagation();
+        if(!confirm('「'+item.text+'」を持ち物リストから削除しますか？')) return;
+        data.deletedPacking.push(item.id);
+        delete data.packing[item.id];
+        saveAll();
+        renderPacking();
+      });
+      wrap.appendChild(el);
+    });
+
+    catCustoms.forEach(item=>{
+      const isChecked = !!data.packing[item.id];
+      if(isChecked) checkedAll++;
+      const el = document.createElement('div');
+      el.className = 'pack-item custom' + (isChecked ? ' checked' : '');
+      el.innerHTML = `
+        <span class="chk">${checkmarkSVG()}</span>
+        <div class="item-body"><span class="title"></span></div>
+        <button class="del-inline" aria-label="削除">×</button>
+      `;
+      el.querySelector('.title').textContent = item.text;
+      el.addEventListener('click', (e)=>{
+        if(e.target.closest('.del-inline')) return;
+        data.packing[item.id] = !data.packing[item.id];
+        saveAll();
+        renderPacking();
+      });
+      el.querySelector('.del-inline').addEventListener('click', (e)=>{
+        e.stopPropagation();
+        data.customPacking = data.customPacking.filter(c=>c.id!==item.id);
+        delete data.packing[item.id];
+        saveAll();
+        renderPacking();
+      });
+      wrap.appendChild(el);
+    });
+
+    if(openAddPackForm === cat.cat){
+      const form = document.createElement('div');
+      form.className = 'add-form';
+      form.innerHTML = `<input type="text" class="title-input" placeholder="持ち物を入力"><button>追加</button>`;
+      const textInput = form.querySelector('.title-input');
+      const addBtn = form.querySelector('button');
+      addBtn.addEventListener('click', ()=>{
+        const text = textInput.value.trim();
+        if(!text) return;
+        data.customPacking.push({ id:'cp'+Date.now(), cat: cat.cat, text });
+        saveAll();
+        openAddPackForm = null;
+        renderPacking();
+      });
+      textInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter') addBtn.click(); });
+      wrap.appendChild(form);
+    }else{
+      const btn = document.createElement('button');
+      btn.className = 'add-btn';
+      btn.textContent = '＋ 持ち物を追加';
+      btn.addEventListener('click', ()=>{ openAddPackForm = cat.cat; renderPacking(); });
+      wrap.appendChild(btn);
+    }
+  });
+  document.getElementById('pack-count').textContent = `${checkedAll} / ${totalAll}`;
+  document.getElementById('pack-bar').style.width = totalAll ? (checkedAll/totalAll*100)+'%' : '0%';
+}
+
+/* ---------- wishlist ---------- */
+function renderWishlist(){
+  const wrap = document.getElementById('wish-list');
+  wrap.innerHTML = '';
+  if(data.wishes.length === 0){
+    wrap.innerHTML = '<div class="wish-empty">まだ何も追加されていません。<br>行きたい場所や楽しみにしていることを書いてみましょう。</div>';
+    return;
+  }
+  data.wishes.slice().reverse().forEach(w=>{
+    const el = document.createElement('div');
+    el.className = 'wish-item' + (w.done ? ' done' : '');
+    const tagClass = w.type === 'fun' ? 'fun' : 'spot';
+    const tagLabel = w.type === 'fun' ? '✨楽しみなこと' : '📍行きたい場所';
+    el.innerHTML = `
+      <span class="chk">${checkmarkSVG()}</span>
+      <div class="body">
+        <span class="tag ${tagClass}">${tagLabel}</span>
+        <div class="text"></div>
+      </div>
+      <button class="del-inline" aria-label="削除">×</button>
+    `;
+    el.querySelector('.text').textContent = w.text;
+    el.querySelector('.chk').addEventListener('click', ()=>{
+      w.done = !w.done;
+      saveAll();
+      renderWishlist();
+    });
+    el.querySelector('.del-inline').addEventListener('click', ()=>{
+      data.wishes = data.wishes.filter(x=>x.id !== w.id);
+      saveAll();
+      renderWishlist();
+    });
+    wrap.appendChild(el);
+  });
+}
+
+document.getElementById('wish-form').addEventListener('submit', (e)=>{
+  e.preventDefault();
+  const input = document.getElementById('wish-input');
+  const type = document.getElementById('wish-type').value;
+  const text = input.value.trim();
+  if(!text) return;
+  data.wishes.push({ id: 'w'+Date.now(), text, type, done:false });
+  input.value = '';
+  saveAll();
+  renderWishlist();
+});
+
+/* ---------- diary ---------- */
+function renderDiary(){
+  const wrap = document.getElementById('diary-days');
+  wrap.innerHTML = '';
+  itineraryData.forEach(day=>{
+    const card = document.createElement('div');
+    card.className = 'diary-card';
+    card.innerHTML = `
+      <div class="dhead">
+        <span class="dnum">${day.day}</span>
+        <h3>${day.date}</h3>
+      </div>
+      <textarea placeholder="実際にやったこと、思い出、感想など自由に書いてください…"></textarea>
+      <div class="diary-save"></div>
+    `;
+    const textarea = card.querySelector('textarea');
+    const saveMsg = card.querySelector('.diary-save');
+    textarea.value = data.diary[day.day] || '';
+
+    let saveTimer = null;
+    textarea.addEventListener('input', ()=>{
+      clearTimeout(saveTimer);
+      saveMsg.textContent = '';
+      saveTimer = setTimeout(()=>{
+        data.diary[day.day] = textarea.value;
+        saveAll();
+        const now = new Date();
+        const t = now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+        saveMsg.textContent = '保存しました（' + t + '）';
+      }, 500);
+    });
+    // フォーカスを外したときも確実に保存
+    textarea.addEventListener('blur', ()=>{
+      clearTimeout(saveTimer);
+      data.diary[day.day] = textarea.value;
+      saveAll();
+    });
+
+    wrap.appendChild(card);
+  });
+}
+
+/* ---------- tabs ---------- */
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-'+tab.dataset.tab).classList.add('active');
+  });
+});
+
+/* ---------- テキストダウンロード ---------- */
+function downloadText(filename, content){
+  const blob = new Blob([content], {type:'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+
+document.getElementById('dl-itinerary').addEventListener('click', ()=>{
+  let lines = ['ひなたフェス2026 宮崎 工程チェック', ''];
+  itineraryData.forEach(day=>{
+    lines.push(`■ ${day.day}　${day.date}`);
+    day.stops.forEach(stop=>{
+      if(data.deletedStops.includes(stop.id)) return;
+      const mark = data.itinerary[stop.id] ? '[x]' : '[ ]';
+      lines.push(`${mark} ${stop.time}　${stop.title}`);
+    });
+    data.customStops.filter(c=>c.day===day.day).forEach(stop=>{
+      const mark = data.itinerary[stop.id] ? '[x]' : '[ ]';
+      lines.push(`${mark} ${stop.time || ''}　${stop.title}（追加）`);
+    });
+    lines.push('');
+  });
+  downloadText('工程チェック.txt', lines.join('\n'));
+});
+
+document.getElementById('dl-packing').addEventListener('click', ()=>{
+  let lines = ['ひなたフェス2026 宮崎 持ち物チェック', ''];
+  packingData.forEach(cat=>{
+    lines.push(`■ ${cat.cat}`);
+    cat.items.forEach(item=>{
+      if(data.deletedPacking.includes(item.id)) return;
+      const mark = data.packing[item.id] ? '[x]' : '[ ]';
+      lines.push(`${mark} ${item.text}`);
+    });
+    data.customPacking.filter(c=>c.cat===cat.cat).forEach(item=>{
+      const mark = data.packing[item.id] ? '[x]' : '[ ]';
+      lines.push(`${mark} ${item.text}（追加）`);
+    });
+    lines.push('');
+  });
+  downloadText('持ち物チェック.txt', lines.join('\n'));
+});
+
+document.getElementById('dl-wishlist').addEventListener('click', ()=>{
+  let lines = ['ひなたフェス2026 宮崎 楽しみリスト', ''];
+  if(data.wishes.length === 0){
+    lines.push('（まだ何も追加されていません）');
+  }else{
+    data.wishes.forEach(w=>{
+      const mark = w.done ? '[x]' : '[ ]';
+      const tag = w.type === 'fun' ? '✨楽しみなこと' : '📍行きたい場所';
+      lines.push(`${mark} [${tag}] ${w.text}`);
+    });
+  }
+  downloadText('楽しみリスト.txt', lines.join('\n'));
+});
+
+document.getElementById('dl-diary').addEventListener('click', ()=>{
+  let lines = ['ひなたフェス2026 宮崎 思い出日記', ''];
+  itineraryData.forEach(day=>{
+    lines.push(`■ ${day.day}　${day.date}`);
+    const text = (data.diary[day.day] || '').trim();
+    lines.push(text ? text : '（まだ書かれていません）');
+    lines.push('');
+  });
+  downloadText('思い出日記.txt', lines.join('\n'));
+});
+
+renderItinerary();
+renderPacking();
+renderWishlist();
+renderDiary();
+</script>
+</body>
+</html>
