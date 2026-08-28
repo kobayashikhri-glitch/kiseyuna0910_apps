@@ -189,6 +189,16 @@ body{
 
 .hint{font-size:.75rem;color:var(--ink-soft);text-align:center;margin:18px 0 4px;}
 
+/* download button */
+.dl-row{display:flex;justify-content:flex-end;margin-bottom:10px;}
+.dl-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  background:#fff;border:1.5px solid var(--ocean);border-radius:100px;
+  padding:7px 16px;font-size:.76rem;font-weight:700;color:var(--ocean-deep);
+  cursor:pointer;font-family:'Zen Kaku Gothic New',sans-serif;
+}
+.dl-btn:active{transform:scale(.97);}
+
 /* name banner */
 .name-banner{
   background:var(--ocean-deep);color:#fff;border-radius:14px;
@@ -250,6 +260,7 @@ body{
 
   <!-- ITINERARY -->
   <div class="panel active" id="panel-itinerary">
+    <div class="dl-row"><button class="dl-btn" id="dl-itinerary">📥 テキストでダウンロード</button></div>
     <div class="progress-wrap">
       <div class="progress-top">
         <span class="label">全体の進み具合</span>
@@ -262,6 +273,7 @@ body{
 
   <!-- PACKING -->
   <div class="panel" id="panel-packing">
+    <div class="dl-row"><button class="dl-btn" id="dl-packing">📥 テキストでダウンロード</button></div>
     <div class="progress-wrap">
       <div class="progress-top">
         <span class="label">持ち物の準備</span>
@@ -274,6 +286,7 @@ body{
 
   <!-- WISHLIST -->
   <div class="panel" id="panel-wishlist">
+    <div class="dl-row"><button class="dl-btn" id="dl-wishlist">📥 テキストでダウンロード</button></div>
     <form class="wish-form" id="wish-form">
       <input type="text" id="wish-input" placeholder="巡りたい場所や楽しみにしていることを追加" maxlength="120">
       <select id="wish-type">
@@ -454,20 +467,36 @@ function renderItinerary(){
   let totalAll=0, checkedAll=0;
   itineraryData.forEach(day=>{
     const dayCustoms = customStops.filter(c=>c.day===day.day);
-    totalAll += day.stops.length + dayCustoms.length;
+    const activeDefaults = day.stops.filter(s=>!(state.deletedStops||[]).includes(s.id));
+    totalAll += activeDefaults.length + dayCustoms.length;
 
     const group = document.createElement('div');
     group.className = 'day-group';
     group.innerHTML = `<div class="day-head"><span class="dnum">${day.day}</span><h3>${day.date}</h3></div>`;
 
     day.stops.forEach(stop=>{
+      if((state.deletedStops||[]).includes(stop.id)) return;
       const isChecked = !!state.itinerary[stop.id];
       if(isChecked) checkedAll++;
       const el = document.createElement('div');
       el.className = 'item' + (isChecked ? ' checked' : '');
-      el.innerHTML = `<span class="chk">${checkmarkSVG()}</span><span class="time">${stop.time}</span><span class="title">${stop.title}</span>`;
-      el.addEventListener('click', ()=>{
+      el.innerHTML = `
+        <span class="chk">${checkmarkSVG()}</span>
+        <span class="time">${stop.time}</span>
+        <span class="title">${stop.title}</span>
+        <button class="del-inline" aria-label="削除">×</button>
+      `;
+      el.addEventListener('click', (e)=>{
+        if(e.target.closest('.del-inline')) return;
         state.itinerary[stop.id] = !state.itinerary[stop.id];
+        set(stateRef, state);
+      });
+      el.querySelector('.del-inline').addEventListener('click', (e)=>{
+        e.stopPropagation();
+        if(!confirm('「'+stop.title+'」を予定から削除しますか？（全員の画面から消えます）')) return;
+        if(!state.deletedStops) state.deletedStops = [];
+        state.deletedStops.push(stop.id);
+        delete state.itinerary[stop.id];
         set(stateRef, state);
       });
       group.appendChild(el);
@@ -539,7 +568,8 @@ function renderPacking(){
   let totalAll=0, checkedAll=0;
   packingData.forEach(cat=>{
     const catCustoms = customPacking.filter(c=>c.cat===cat.cat);
-    totalAll += cat.items.length + catCustoms.length;
+    const activeDefaults = cat.items.filter(it=>!(state.deletedPacking||[]).includes(it.id));
+    totalAll += activeDefaults.length + catCustoms.length;
 
     const head = document.createElement('div');
     head.className = 'cat-head';
@@ -547,13 +577,27 @@ function renderPacking(){
     wrap.appendChild(head);
 
     cat.items.forEach(item=>{
+      if((state.deletedPacking||[]).includes(item.id)) return;
       const isChecked = !!state.packing[item.id];
       if(isChecked) checkedAll++;
       const el = document.createElement('div');
       el.className = 'pack-item' + (isChecked ? ' checked' : '');
-      el.innerHTML = `<span class="chk">${checkmarkSVG()}</span><span class="title">${item.text}</span>`;
-      el.addEventListener('click', ()=>{
+      el.innerHTML = `
+        <span class="chk">${checkmarkSVG()}</span>
+        <span class="title">${item.text}</span>
+        <button class="del-inline" aria-label="削除">×</button>
+      `;
+      el.addEventListener('click', (e)=>{
+        if(e.target.closest('.del-inline')) return;
         state.packing[item.id] = !state.packing[item.id];
+        set(stateRef, state);
+      });
+      el.querySelector('.del-inline').addEventListener('click', (e)=>{
+        e.stopPropagation();
+        if(!confirm('「'+item.text+'」を持ち物リストから削除しますか？（全員の画面から消えます）')) return;
+        if(!state.deletedPacking) state.deletedPacking = [];
+        state.deletedPacking.push(item.id);
+        delete state.packing[item.id];
         set(stateRef, state);
       });
       wrap.appendChild(el);
@@ -673,6 +717,8 @@ onValue(stateRef, (snap)=>{
   state = snap.val() || { itinerary:{}, packing:{} };
   if(!state.itinerary) state.itinerary = {};
   if(!state.packing) state.packing = {};
+  if(!state.deletedStops) state.deletedStops = [];
+  if(!state.deletedPacking) state.deletedPacking = [];
   renderItinerary();
   renderPacking();
 });
@@ -687,6 +733,69 @@ onValue(customRef, (snap)=>{
 onValue(customPackRef, (snap)=>{
   customPacking = snap.val() || [];
   renderPacking();
+});
+
+/* ---------- テキストダウンロード ---------- */
+function downloadText(filename, content){
+  const blob = new Blob([content], {type:'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+
+document.getElementById('dl-itinerary').addEventListener('click', ()=>{
+  let lines = ['ひなたフェス2026 宮崎 工程チェック', ''];
+  itineraryData.forEach(day=>{
+    lines.push(`■ ${day.day}　${day.date}`);
+    day.stops.forEach(stop=>{
+      if((state.deletedStops||[]).includes(stop.id)) return;
+      const mark = state.itinerary[stop.id] ? '[x]' : '[ ]';
+      lines.push(`${mark} ${stop.time}　${stop.title}`);
+    });
+    customStops.filter(c=>c.day===day.day).forEach(stop=>{
+      const mark = state.itinerary[stop.id] ? '[x]' : '[ ]';
+      lines.push(`${mark} ${stop.time || ''}　${stop.title}（追加${stop.by ? '：'+stop.by : ''}）`);
+    });
+    lines.push('');
+  });
+  downloadText('工程チェック.txt', lines.join('\n'));
+});
+
+document.getElementById('dl-packing').addEventListener('click', ()=>{
+  let lines = ['ひなたフェス2026 宮崎 持ち物チェック', ''];
+  packingData.forEach(cat=>{
+    lines.push(`■ ${cat.cat}`);
+    cat.items.forEach(item=>{
+      if((state.deletedPacking||[]).includes(item.id)) return;
+      const mark = state.packing[item.id] ? '[x]' : '[ ]';
+      lines.push(`${mark} ${item.text}`);
+    });
+    customPacking.filter(c=>c.cat===cat.cat).forEach(item=>{
+      const mark = state.packing[item.id] ? '[x]' : '[ ]';
+      lines.push(`${mark} ${item.text}（追加${item.by ? '：'+item.by : ''}）`);
+    });
+    lines.push('');
+  });
+  downloadText('持ち物チェック.txt', lines.join('\n'));
+});
+
+document.getElementById('dl-wishlist').addEventListener('click', ()=>{
+  let lines = ['ひなたフェス2026 宮崎 楽しみリスト', ''];
+  if(wishes.length === 0){
+    lines.push('（まだ何も追加されていません）');
+  }else{
+    wishes.forEach(w=>{
+      const mark = w.done ? '[x]' : '[ ]';
+      const tag = w.type === 'fun' ? '✨楽しみなこと' : '📍行きたい場所';
+      lines.push(`${mark} [${tag}] ${w.text}${w.by ? '（'+w.by+'）' : ''}`);
+    });
+  }
+  downloadText('楽しみリスト.txt', lines.join('\n'));
 });
 
 renderNameArea();
