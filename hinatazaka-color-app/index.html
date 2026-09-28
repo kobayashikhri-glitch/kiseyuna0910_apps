@@ -74,10 +74,23 @@
     justify-content: space-between;
     padding: 10px 14px;
     border-bottom: 1px solid #f0f0f0;
+    gap: 10px;
   }
   .member-row .name {
     font-size: 15px;
     font-weight: 500;
+    flex-shrink: 0;
+  }
+  .row-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .row-sub {
+    font-size: 11px;
+    color: #888;
+    text-align: right;
+    white-space: nowrap;
   }
   .dots {
     display: flex;
@@ -374,6 +387,10 @@ function makeDot(color, large) {
   return el;
 }
 
+function colorLabel(colors) {
+  return colors.map(c => c + "(" + PEN_NUMBERS[c] + ")").join(" × ");
+}
+
 // ===== メンバー一覧タブ =====
 function renderMembers() {
   const container = document.getElementById("tab-members");
@@ -393,11 +410,20 @@ function renderMembers() {
       name.textContent = m.name;
       row.appendChild(name);
 
+      const right = document.createElement("div");
+      right.className = "row-right";
+
+      const sub = document.createElement("span");
+      sub.className = "row-sub";
+      sub.textContent = colorLabel(m.colors);
+      right.appendChild(sub);
+
       const dots = document.createElement("div");
       dots.className = "dots";
       m.colors.forEach(c => dots.appendChild(makeDot(c, false)));
-      row.appendChild(dots);
+      right.appendChild(dots);
 
+      row.appendChild(right);
       container.appendChild(row);
     });
   });
@@ -427,22 +453,37 @@ function renderSongs() {
     top.appendChild(left);
 
     const right = document.createElement("div");
-    right.className = "dots";
+    right.className = "row-right";
+
+    const sub = document.createElement("span");
+    sub.className = "row-sub";
+    if (song.special === "rainbow") {
+      sub.textContent = "虹色";
+    } else if (song.special === "split") {
+      sub.textContent = colorLabel([song.colors[0]]) + " / " + colorLabel([song.colors[1]]);
+    } else {
+      sub.textContent = colorLabel(song.colors);
+    }
+    right.appendChild(sub);
+
+    const dots = document.createElement("div");
+    dots.className = "dots";
     if (song.special === "rainbow") {
       const rb = document.createElement("div");
       rb.className = "rainbow-dot";
       rb.title = "虹色（客席エリアごとに色分け）";
-      right.appendChild(rb);
+      dots.appendChild(rb);
     } else if (song.special === "split") {
-      right.appendChild(makeDot(song.colors[0], false));
+      dots.appendChild(makeDot(song.colors[0], false));
       const sep = document.createElement("span");
       sep.className = "split-sep";
       sep.textContent = "/";
-      right.appendChild(sep);
-      right.appendChild(makeDot(song.colors[1], false));
+      dots.appendChild(sep);
+      dots.appendChild(makeDot(song.colors[1], false));
     } else {
-      song.colors.forEach(c => right.appendChild(makeDot(c, false)));
+      song.colors.forEach(c => dots.appendChild(makeDot(c, false)));
     }
+    right.appendChild(dots);
     top.appendChild(right);
     row.appendChild(top);
 
@@ -564,12 +605,17 @@ function renderQuiz() {
   q.options.forEach(opt => {
     const btn = document.createElement("button");
     btn.className = "quiz-option";
-    btn.textContent = opt.name;
     const isCorrect = opt.name === q.member.name;
     if (quizState.selected) {
       btn.disabled = true;
       if (isCorrect) btn.classList.add("correct");
       else if (opt === quizState.selected) btn.classList.add("wrong");
+    }
+    // 選択後は正解メンバーのカラー名も表示（サクラザカ版の結果表示に合わせる）
+    if (quizState.selected && isCorrect) {
+      btn.textContent = opt.name + "（" + colorLabel(opt.colors) + "）";
+    } else {
+      btn.textContent = opt.name;
     }
     btn.onclick = () => handleSelect(opt);
     optWrap.appendChild(btn);
